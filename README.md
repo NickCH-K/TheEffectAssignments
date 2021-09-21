@@ -1,6 +1,6 @@
 # TheEffectAssignments
 
-This is a repository of homework assignments that accompany [The Effect](theeffectbook.net) by Huntington-Klein.
+This is a repository of homework assignments that accompany [The Effect](https://theeffectbook.net) by Huntington-Klein.
 
 The list of questions for a given chapter is not super long, and many of the questions are open-ended in nature, so this really is more a set of homework assignments than a test bank or anything. But you could include these questions as part of an exam, certainly.
 
