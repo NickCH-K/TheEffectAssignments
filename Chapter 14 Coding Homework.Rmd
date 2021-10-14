@@ -17,6 +17,7 @@ Follow the below instructions and turn in both your code and results:
 Then, drop the `data_id` variable from the data.
 
 *Language-specific instructions*: 
+
 - In R or Python, store the data set as `nsw`.
 - In R, after loading the **tidyverse** you can drop using `select(-droppedvariable)`
 - In Stata, it's `drop droppedvariable`
@@ -31,6 +32,7 @@ Second, write code that uses a set of given weights to estimate the effect of `t
 Third, write code that creates and prints out a weighted balance table for all variables across values of `treat`, using `weight` as weighted. See The Effect Section 14.6.3. Don't worry about getting a table with tests of significant differences for now; just the means. 
 
 *Language-specific instructions*:
+
 - One easy way to get the balance table in R is with `sumtable()` in **vtable** by setting the `group` and `group.weight` options (and possibly `group.test`).
 - One easy way to get the table in Stata is with `tabstat` using the `by()` option. 
 - One easy way to get the table in Python is with `.groupby.aggregate()`. 
@@ -43,6 +45,7 @@ Third, write code that creates and prints out a weighted balance table for all v
 Check the documentation of the function you use to be sure you're matching with replacement.
 
 **Language-specific notes:**
+
 - Due to a namespace conflict (the same name used for two different functions in different packages), loading the **Matching** package may make the `select()` function not work. So be sure to re-load the **tidyverse** again afterwards, or use `dplyr::select()` instead of `select()` to let R know which version of `select()` to use.
 - The documentation isn't super clear, but Stata's `teffects nnmatch` does match with replacement by default.
 
@@ -55,6 +58,7 @@ Be careful to get the predicted *probability of treatment* and not the predicted
 (also, note, your estimation shouldn't produce any propensities that end up actually getting trimmed, but write the code to do so anyway, just in case)
 
 **Language-specific notes:**
+
 - You can set values to missing based on their value using `variable = ifelse(condition, NA_real_, variable)` or `variable = case_when(condition ~ NA_real_, TRUE ~ variable)` inside a `mutate()` in R, `replace variable = . if condition` in Stata, or using `.loc[condition, 'variable'] = pd.NA` in Python.
 - It's not necessary, but there are ways of avoiding having to type out every single variable name in each langauge in your regression:
 - In R, if your data set contains only your outcome variable and the predictors, you can use the formula `y~.` and that will regress the variable `y` on all the other variables in the data
@@ -66,6 +70,7 @@ Be careful to get the predicted *probability of treatment* and not the predicted
 Note that the same tools you used to trim `propensity` conditional on its value can also be used to calculate `ipw` in one way for treated observations and in another way for untreated observations.
 
 **Language-specific notes:**
+
 - In Python, the trimming process may have converted your `ipw` variable into an "object" instead of a numeric. You may need to use `pd.to_numeric()` to fix the variable before using it as a weight. May as well fix `propensity` while you're at it.
 
 7. Make a common support graph, overlaying the density of the `propensity` variable for treated observations on top of the density of the `propensity` variable for untreated observations. You may want to refer to [this guide](https://lost-stats.github.io/Presentation/Figures/density_plots.html) if you are not familiar with your language's graphing capabilities.

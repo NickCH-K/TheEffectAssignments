@@ -166,7 +166,7 @@ pre code {
 
 <h1 class="title toc-ignore">Chapter 16 Coding Homework</h1>
 <h4 class="author">Nick Huntington-Klein</h4>
-<h4 class="date">Updated 2021-10-03</h4>
+<h4 class="date">Updated 2021-10-14</h4>
 
 </div>
 
@@ -184,7 +184,10 @@ pre code {
 </ul></li>
 <li><p>Panel data is often described as “N by T”. That is, the number of different individuals N and the number of time periods T. Write code that outputs what N and T are in this data.</p></li>
 </ol>
-<p><em>Language-specific instructions</em>: - This will entail counting the number of unique values of your individual and time identifiers. In R try <code>unique()</code> to get the unique values and <code>length()</code> to count how many there are, or similarly <code>pd.unique()</code> and <code>len()</code> in Python (or just <code>nuniq. In Stata try</code>codebook` to get the number of unique values.</p>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>This will entail counting the number of unique values of your individual and time identifiers. In R try <code>unique()</code> to get the unique values and <code>length()</code> to count how many there are, or similarly <code>pd.unique()</code> and <code>len()</code> in Python (or just <code>nuniq. In Stata try</code>codebook` to get the number of unique values.</li>
+</ul>
 <ol start="3" style="list-style-type: decimal">
 <li>A <em>balanced</em> panel is one in which each individual shows up in every single time period. You can check whether a data set is a balanced panel by seeing whether the number of unique time periods each individual ID shows up in is the same as the number of unique time periods, or whether the number of unique individual IDs in each time period is the same as the total number of unique individual IDs. Think to yourself a second about why these procedures would check that this is a balanced panel. Then, check whether this data set is a balanced panel.</li>
 </ol>
@@ -192,7 +195,10 @@ pre code {
 <ol start="4" style="list-style-type: decimal">
 <li>Run an OLS regression, with no fixed effects, of <code>math4</code> on <code>expp</code> and <code>lunch</code>. Store the results as <code>m1</code>.</li>
 </ol>
-<p><em>Language-specific instructions</em>: - Yes, store them in Stata too. Following your regression use <code>estimates store</code>.</p>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>Yes, store them in Stata too. Following your regression use <code>estimates store</code>.</li>
+</ul>
 <ol start="5" style="list-style-type: decimal">
 <li>Modify the model in step 4 to include fixed effects for <code>distid</code> “by hand”. That is, subtract out the within-<code>distid</code> mean of <code>math4</code>, <code>expp</code>, and <code>lunch</code>, creating new variables <code>math4_demean</code>, <code>expp_demean</code>, and <code>lunch_demean</code>, and re-estimate the model using those variables, storing the result as <code>m2</code>.</li>
 </ol>
@@ -201,7 +207,10 @@ pre code {
 <li>Next we’re going to estimate fixed effects by including <code>distid</code> as a set of dummies. This can be extremely slow, so for demonstration purposes use only the first 500 observations of your data (don’t get rid of the other observations, though, you’ll want them for the rest of this assignment). Run the model from step 4 but with dummies for different values of <code>distid</code>, saving the result as <code>m3</code>. Then, do a joint F test on the dummies (see Chapter 13), and report if you can reject that the dummies are jointly zero at the 99% level.</li>
 </ol>
 <p>Tip: <code>distid</code> is stored as a numeric variable, but you want it to be treated as a categorical variable. If your regression result only has one coefficient for <code>distid</code> you’ve done it wrong.</p>
-<p><em>Language-specific instructions</em>: - For Python, visit <a href="https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLSResults.f_test.html">this page</a> of the <strong>statsmodels</strong> documentation. The first example shows how to do a joint F-test comparing a long list of parameters to 0. You’ll need to change the <code>1:</code> part, though. So pay attention to which parameter index numbers have the coefficients you want to test.</p>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>For Python, visit <a href="https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLSResults.f_test.html">this page</a> of the <strong>statsmodels</strong> documentation. The first example shows how to do a joint F-test comparing a long list of parameters to 0. You’ll need to change the <code>1:</code> part, though. So pay attention to which parameter index numbers have the coefficients you want to test.</li>
+</ul>
 <ol start="7" style="list-style-type: decimal">
 <li><p>Now we will use a specially-designed function to estimate a model with fixed effects. (Using the whole data set once again), use <code>feols()</code> from the <strong>fixest</strong> package in R, <code>reghdfe</code> from the <strong>reghdfe</strong> package in Stata, or <code>PanelOLS</code> from <strong>linearmodels</strong> in Python to estimate the model from step 4 but with fixed effects for <code>distid</code>. Save the result as <code>m4</code>. Include standard errors clustered at the <code>distid</code> level.</p></li>
 <li><p>Now add fixed effects for year to your model from step 7 to create a two-way fixed effects model. Keep the standard errors clustered at the <code>distid</code> level. Save the results as <code>m5</code>.</p></li>
@@ -211,7 +220,10 @@ pre code {
 <ol start="10" style="list-style-type: decimal">
 <li>Finally, we’ll close it out by using correlated random effects instead of fixed effects (see 16.3.3). You already have <code>expp_demean</code> and <code>lunch_demean</code> from earlier. Now, modify the code from that slightly to add on <code>expp_mean</code> and <code>lunch_mean</code> (the mean within <code>distid</code> instead of the value <em>minus</em> that mean). Then, regress <code>math4</code> on <code>expp_demean</code>, <code>lunch_demean</code>, <code>expp_mean</code>, and <code>lunch_mean</code>, with random effects for <code>distid</code> using <code>lmer()</code> from <strong>lme4</strong> in R, <code>xtreg, re</code> in Stata, or <code>RandomEffects</code> from <strong>linearmodels</strong> in Python. Show a summary of the regression results.</li>
 </ol>
-<p><em>Language-specific instructions</em>: - In R, <code>lmer()</code> has a hard time with numeric variables as categorical indicators. Create a new, factor version of <code>distid</code> directly in the data before running the model, and use that instead.</p>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>In R, <code>lmer()</code> has a hard time with numeric variables as categorical indicators. Create a new, factor version of <code>distid</code> directly in the data before running the model, and use that instead.</li>
+</ul>
 
 
 

@@ -1,0 +1,85 @@
+---
+title: "Chapter 17 Coding Homework"
+author: "Nick Huntington-Klein"
+date: "Updated `r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+library(Statamarkdown)
+```
+
+Follow the below instructions and turn in both your code and results:
+
+1. We are going to download some financial data, using a package designed to do so. Using the appropriate package for your language (details below), download the closing price of Apple stock (AAPL) each day from December 1, 2006 through January 31, 2007 from Yahoo Finance. In R and Python, store the resulting data as `aapl`.
+
+Then, rename the closing price `AAPL_Close`, and merge the data with the S&P 500 closing price on the same day (which you'll call `SP500_Close`) found in `SP500_Historical.csv`.
+
+Finally, sort the data in date order, and create the columns `AAPL_RR` and `SP500_RR` which are the day-to-day percentage increases (RR, or rate of return), which you can calculate by taking the closing price, subtracting the closing price one row above, and then dividing all of that by the price one row above.
+
+*Language-specific instructions*: 
+
+- In R, use the `tq_get()` function in the **tidyquant** package. See the help file to figure out how to have it give you the `'AAPL'` stock `from` December 1, 2006 `to` January 31, 2007. Then, use `inner_join()` to join it with the `Date` and `SP500_Close` columns of the S&P 500 data. Then, to create the RR variables, use `arrange()` to sort the data, and `lag(AAPL_Close)` (or similarly for S&P) to access the price one row above the current row.
+- In Stata, use the `getsymbols` function from the **getsymbols** package (`ssc install getsymbols`). You will probably want to get the S&P500 data prepared to merge in first (and saved as a `.dta` file) before using `getsymbols`. You'll need to do some date finagling in the S&P500 data to get the `date` variable recognized as a date. You can do this by generating a new variable `daten = date(date, "YMD")`. Finally, use `merge 1:1 daten` to merge together your `getsymbols` and S&P500 data. Then, to create the RR variables, use `sort` to sort the data, and `AAPL_close[_n-1]` (or similarly for S&P) to access the price one row above.
+- In Python get the **yfinance** package and `import yfinance as yf`. Then, create a ticker data object with 'AAPL', using `yf.Ticker()`, and then use the ticker data object's `.history` method to download the data from your desired `start` to `end`, with `period='1d'`. You'll need to convert the S&P500 data's date variable using `pd.to_datetime()` before merging. Then, to create the RR variables, you can use `.sort_values()` on your `DataFrame` to sort it, and then `aapl['AAPL_Close'].shift(1)` (and similarly for S&P) to access the price one row above.
+
+2. Apple announced the iPhone on January 7, 2007. Let's start by graphing the event study of how this affected the Apple stock price. Make a line graph of the `AAPL_RR` on the y-axis and date on the x-axis. Add a vertical line at the event date.
+
+Write a line commenting on whether it seems like the announcement improved Apple's stock price.
+
+*Language-specific instructions*: 
+
+- In R, you can use `ggplot()` with `date` on the x-axis and `AAPL_RR` on the y-axis, with a `geom_line()` to graph the Apple line. Add to that a `geom_vline(aes(xintercept = eventdate))` where `eventdate` is a date object, which you can create using `as.Date('YYYY-MM-DD')`. 
+- In Stata, use the `twoway` function, which can graph multiple lines (one for the line graph and another for the vertial line) using parentheses: `twoway () ()`. The `line` graph should be in the first set of parentheses, and in the second you can do `function y = eventdate, horiz ra(bottom top)`, where `eventdate` is the event date, which you can make with `date("YYYY-MM-DD", "YMD")`, and `bottom top` are the bottom and top of the range you want it to draw the line for.
+- In Python, you can use `import seaborn as sns` and `sns.lineplot()` to plot the line graph. Then, `import matplotlib.pyplot as plt` and `plt.axvline(eventdate)` to plot the vertical line, where `eventdate` is the event date, created with `pd.to_datetime`.
+
+3. Calculate the abnormal return for Apple in each period (both pre-event and post-event) using the mean method. Be sure to only use data from the observation period to calculate the mean. Save this new variable as `AAPL_AR_mean`.
+
+(note: the process of making `AAPL_RR` has created a missing value for the first day. You may have to deal with this)
+
+4. Calculate the abnormal return for Apple in each period (both pre-event and post-event) using the market method. Save this new variable as `AAPL_AR_market`.
+
+5.  Calculate the abnormal return for Apple in each period (both pre-event and post-event) using the risk-adjusted method. Use an OLS regression to estimate the relationship between Apple and the market. Save this new variable as `AAPL_AR_risk`.
+
+*Language-specific instructions*: 
+
+- In R, because of the missing value, the `predict()` on your OLS model will be one value too short. You can fix this by using the `newdata` argument of `predict()`.
+- In Stata, use the `twoway` function, which can graph multiple lines (one for the line graph and another for the vertial line) using parentheses: `twoway () ()`. The `line` graph should be in the first set of parentheses, and in the second you can do `function y = eventdate, horiz ra(bottom top)`, where `eventdate` is the event date, which you can make with `date("YYYY-MM-DD", "YMD")`, and `bottom top` are the bottom and top of the range you want it to draw the line for.
+- In Python, you can use `import seaborn as sns` and `sns.lineplot()` to plot the line graph. Then, `import matplotlib.pyplot as plt` and `plt.axvline(eventdate)` to plot the vertical line, where `eventdate` is the event date, created with `pd.to_datetime`.
+
+6. Make a graph of each of the AR variables, like in step 2 (ideally, put all three on the same set of axes and label them, but this is not required). Then, make a comment on what the event study results look like, and whether they're different by method.
+
+7. Using `AAPL_AR_market`, show an estimate of the effect of the announcement on the stock price on the day of the announcement. Then, create a basic t-statistic for the effect using the standard deviation of the pre-event `AAPL_AR_market`. Use this t-statistic to create a p-value for the test against the null hypothesis that the effect is 0. Show the estimate, t-statistic, and p-value.
+
+You can get a p-value for a two-sided test by making your t-statistic negative if it isn't already, feeding that to the cumulative standard normal distribution function, and then multiplying that by 2.
+
+Finally, write a line explaining whether the effect is statistically significant at the 99% level.
+
+*Language-specific instructions*: 
+
+- In R, the cumulative standard normal distribution function is `pnorm()`.
+- In Stata, the cumulative standard normal distribution function is `normal()`. Note you can pull a value out and store it as a local, which may be handy for this. For example `summarize AAPL_AR_market` followed by `local AR_mkt_mean = r(mean)`.
+- In Python, the cumulative standard normal distribution function is `NormalDist.cdf()` after `from statistics import NormalDist`. If you're trying to get the estimate from the `DataFrame` and it's only giving you back a one-row `DataFrame` rather than the value, try applying `.item()` to it.
+
+8. Comment on whether you think it would make sense or not to estimate this event study design using a segmented linear regression (i.e. Y = Time + AfterEvent + Time*AfterEvent), and why.
+
+9. Regardless of your answer to 8, estimate this event study design using a segmented linear regression, counting the event day in the "after" period (and creating an `After` variable to use in regression). However, instead of any of the AR measures, use `AAPL_Close` as the dependent variable (think to yourself - why am I having you do this?). Use Newey-West standard errors with 3 maximum lags (See Chapter 13). Write a line describing the estimated effect you found.
+
+(Tip: Create a variable `Time` that's just the row number and use that as your Time variable. This may be easier to work with in a regression than a date, and also doesn't run into issues with the fact that this data doesn't have weekends)
+
+10. I mentioned in the chapter that segmented regression on autocorrelated data (and while stock price *returns* may or may not be autocorrelated, stock *prices* definitely are) tends to over-reject the null, even with HAC standard errors. Let's test that.
+
+First, drop all data from the event date and after, so we're only working with pre-event data.
+
+Then, using your tools from Chapter 15, loop through fake "event dates" from December 11 through December 26. 
+
+Each time, recreate the `After` variable, re-run your segmented regression and store the p-value.
+
+At the end, report the proportion of p-values that are below .05. If there's no issue, it should be something like 5% of the p-values. If it's way higher than 5%, that's bad news for our segmented regression. Write a line on what you find.
+
+(Tip: You may find it easier to loop over the corresponding values of your `Time` variable than the `date` values)
+
+*Language-specific instructions*: 
+
+- In Stata, the standard `preserve`/`restore` trick won't work the same way since we want to keep re-using our original data. Two approaches you can take: either save your current data, and re-load it using `use` every time you run a model, or simply store the p-values in the data itself. Instead of having a separate data set to store results in, create a `pvalues` column in your current data and store, say, the p-value from when you have `Time=7` as a fake date in the row where `Time=7`, and so on.

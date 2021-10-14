@@ -25,6 +25,7 @@ Follow the below instructions and turn in both your code and results:
 2. Panel data is often described as "N by T". That is, the number of different individuals N and the number of time periods T. Write code that outputs what N and T are in this data.
 
 *Language-specific instructions*: 
+
 - This will entail counting the number of unique values of your individual and time identifiers. In R try `unique()` to get the unique values and `length()` to count how many there are, or similarly `pd.unique()` and `len()` in Python (or just `nuniq. In Stata try `codebook` to get the number of unique values.
 
 
@@ -35,6 +36,7 @@ Follow the below instructions and turn in both your code and results:
 4. Run an OLS regression, with no fixed effects, of `math4` on `expp` and `lunch`. Store the results as `m1`.
 
 *Language-specific instructions*: 
+
 - Yes, store them in Stata too. Following your regression use `estimates store`.
 
 
@@ -47,6 +49,7 @@ Follow the below instructions and turn in both your code and results:
 Tip: `distid` is stored as a numeric variable, but you want it to be treated as a categorical variable. If your regression result only has one coefficient for `distid`  you've done it wrong.
 
 *Language-specific instructions*: 
+
 - For Python, visit [this page](https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLSResults.f_test.html) of the **statsmodels** documentation. The first example shows how to do a joint F-test comparing a long list of parameters to 0. You'll need to change the `1:` part, though. So pay attention to which parameter index numbers have the coefficients you want to test.
 
 
@@ -64,5 +67,6 @@ Write down two interesting things you notice from the table. Multiple possible a
 10. Finally, we'll close it out by using correlated random effects instead of fixed effects (see 16.3.3). You already have `expp_demean` and `lunch_demean` from earlier. Now, modify the code from that slightly to add on `expp_mean` and `lunch_mean` (the mean within `distid` instead of the value *minus* that mean). Then, regress `math4` on `expp_demean`, `lunch_demean`, `expp_mean`, and `lunch_mean`, with random effects for `distid` using `lmer()` from **lme4** in R, `xtreg, re` in Stata, or `RandomEffects` from **linearmodels** in Python. Show a summary of the regression results.
 
 *Language-specific instructions*: 
+
 - In R, `lmer()` has a hard time with numeric variables as categorical indicators. Create a new, factor version of `distid` directly in the data before running the model, and use that instead.
 

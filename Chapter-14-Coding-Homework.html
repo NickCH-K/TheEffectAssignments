@@ -166,7 +166,7 @@ pre code {
 
 <h1 class="title toc-ignore">Chapter 14 Coding Homework</h1>
 <h4 class="author">Nick Huntington-Klein</h4>
-<h4 class="date">Updated 2021-09-16</h4>
+<h4 class="date">Updated 2021-10-14</h4>
 
 </div>
 
@@ -176,32 +176,57 @@ pre code {
 <li>Load the <code>nsw_mixtape</code> data that can be found in the <strong>causaldata</strong> package associated with the book, or download it fromLoad the <code>dengue.csv</code> file provided to you, or from <a href="https://vincentarelbundock.github.io/Rdatasets/csv/causaldata/nsw_mixtape.csv">this site</a>. Documentation on the variables is available through the package, or <a href="https://vincentarelbundock.github.io/Rdatasets/doc/causaldata/nsw_mixtape.html">here</a>.</li>
 </ol>
 <p>Then, drop the <code>data_id</code> variable from the data.</p>
-<p><em>Language-specific instructions</em>: - In R or Python, store the data set as <code>nsw</code>. - In R, after loading the <strong>tidyverse</strong> you can drop using <code>select(-droppedvariable)</code> - In Stata, it’s <code>drop droppedvariable</code> - In Python, after loading <strong>pandas</strong> it’s `nsw.drop(‘droppedvariable’, axis = 1)</p>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>In R or Python, store the data set as <code>nsw</code>.</li>
+<li>In R, after loading the <strong>tidyverse</strong> you can drop using <code>select(-droppedvariable)</code></li>
+<li>In Stata, it’s <code>drop droppedvariable</code></li>
+<li>In Python, after loading <strong>pandas</strong> it’s `nsw.drop(‘droppedvariable’, axis = 1)</li>
+</ul>
 <ol start="2" style="list-style-type: decimal">
 <li>Let’s see where we’re at before we do any matching at all. <code>nsw_mixtape</code> is from an experiment (read that documentation!) so that should already put us in a pretty good place.</li>
 </ol>
 <p>First, create a variable called <code>weight</code> in your data equal to 1 for all observations (weights that are all 1 will have no effect, but this will give us a clue as to how we could incorporate matching weights easily).</p>
 <p>Second, write code that uses a set of given weights to estimate the effect of <code>treat</code> on <code>re78</code>, using <code>weight</code> as weights, and prints out a summary of the regression results. The easiest way to do this is probably weighted regression; see The Effect Section 13.4.1, but without any controls or predictors other than <code>treat</code>. <strong>Keep in mind the standard errors on the estimate won’t be quite right, since they won’t account for the uncertainty in creating the weights.</strong></p>
 <p>Third, write code that creates and prints out a weighted balance table for all variables across values of <code>treat</code>, using <code>weight</code> as weighted. See The Effect Section 14.6.3. Don’t worry about getting a table with tests of significant differences for now; just the means.</p>
-<p><em>Language-specific instructions</em>: - One easy way to get the balance table in R is with <code>sumtable()</code> in <strong>vtable</strong> by setting the <code>group</code> and <code>group.weight</code> options (and possibly <code>group.test</code>). - One easy way to get the table in Stata is with <code>tabstat</code> using the <code>by()</code> option. - One easy way to get the table in Python is with <code>.groupby.aggregate()</code>.</p>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>One easy way to get the balance table in R is with <code>sumtable()</code> in <strong>vtable</strong> by setting the <code>group</code> and <code>group.weight</code> options (and possibly <code>group.test</code>).</li>
+<li>One easy way to get the table in Stata is with <code>tabstat</code> using the <code>by()</code> option.</li>
+<li>One easy way to get the table in Python is with <code>.groupby.aggregate()</code>.</li>
+</ul>
 <p>2b. Is there anything potentially concerning about the balance table, given that this is a randomized experiment where <code>treat</code> was randomly assigned?</p>
 <ol start="3" style="list-style-type: decimal">
 <li>Using all of the variables in the data except <code>treat</code> and <code>re78</code> as matching variables, perform 3-nearest-neighbor Mahalanobis distance matching with replacement and no caliper (The Effect 14.4.1) and calculate the post-matching average treatment on the treated effect of <code>treat</code> on <code>re78</code>.</li>
 </ol>
 <p>Check the documentation of the function you use to be sure you’re matching with replacement.</p>
-<p><strong>Language-specific notes:</strong> - Due to a namespace conflict (the same name used for two different functions in different packages), loading the <strong>Matching</strong> package may make the <code>select()</code> function not work. So be sure to re-load the <strong>tidyverse</strong> again afterwards, or use <code>dplyr::select()</code> instead of <code>select()</code> to let R know which version of <code>select()</code> to use. - The documentation isn’t super clear, but Stata’s <code>teffects nnmatch</code> does match with replacement by default.</p>
+<p><strong>Language-specific notes:</strong></p>
+<ul>
+<li>Due to a namespace conflict (the same name used for two different functions in different packages), loading the <strong>Matching</strong> package may make the <code>select()</code> function not work. So be sure to re-load the <strong>tidyverse</strong> again afterwards, or use <code>dplyr::select()</code> instead of <code>select()</code> to let R know which version of <code>select()</code> to use.</li>
+<li>The documentation isn’t super clear, but Stata’s <code>teffects nnmatch</code> does match with replacement by default.</li>
+</ul>
 <ol start="4" style="list-style-type: decimal">
 <li><p>Create a post-matching balance table showing balance for all the matching variables (you’ll probably want to use the balance function designed to follow the matching function you used, from the same package). Write a sentence commenting on whether the balance looks good. You may have to read the documentation for the function you use to figure out what the results mean.</p></li>
 <li><p>Switching over to propensity score matching, use the same matching variables as in Question 3 to estimate the propensity to be treated (with a logit regression), and then add the treatment propensity to the data set as a new variable called <code>propensity</code>. Trim the propensity score, setting to missing any values from 0 to .05 or from .95 to 1 (this is a different method than done in the chapter).</p></li>
 </ol>
 <p>Be careful to get the predicted <em>probability of treatment</em> and not the predicted <em>index function</em>. You can check this by making sure the values are all between 0 and 1.</p>
 <p>(also, note, your estimation shouldn’t produce any propensities that end up actually getting trimmed, but write the code to do so anyway, just in case)</p>
-<p><strong>Language-specific notes:</strong> - You can set values to missing based on their value using <code>variable = ifelse(condition, NA_real_, variable)</code> or <code>variable = case_when(condition ~ NA_real_, TRUE ~ variable)</code> inside a <code>mutate()</code> in R, <code>replace variable = . if condition</code> in Stata, or using <code>.loc[condition, &#39;variable&#39;] = pd.NA</code> in Python. - It’s not necessary, but there are ways of avoiding having to type out every single variable name in each langauge in your regression: - In R, if your data set contains only your outcome variable and the predictors, you can use the formula <code>y~.</code> and that will regress the variable <code>y</code> on all the other variables in the data - In Stata, you can use <code>a-b</code> to refer to the full set of variables between <code>a</code> and <code>b</code>. If your variables are <code>order</code>ed properly, this can be the list of predictors - In Python, you can use <strong>statsmodels.api</strong> instead of <strong>statsmodels.formula.api</strong> and use a matrix of your predictors (or just use the <strong>CausalModel</strong> approach with a matrix, which you’re already using)</p>
+<p><strong>Language-specific notes:</strong></p>
+<ul>
+<li>You can set values to missing based on their value using <code>variable = ifelse(condition, NA_real_, variable)</code> or <code>variable = case_when(condition ~ NA_real_, TRUE ~ variable)</code> inside a <code>mutate()</code> in R, <code>replace variable = . if condition</code> in Stata, or using <code>.loc[condition, &#39;variable&#39;] = pd.NA</code> in Python.</li>
+<li>It’s not necessary, but there are ways of avoiding having to type out every single variable name in each langauge in your regression:</li>
+<li>In R, if your data set contains only your outcome variable and the predictors, you can use the formula <code>y~.</code> and that will regress the variable <code>y</code> on all the other variables in the data</li>
+<li>In Stata, you can use <code>a-b</code> to refer to the full set of variables between <code>a</code> and <code>b</code>. If your variables are <code>order</code>ed properly, this can be the list of predictors</li>
+<li>In Python, you can use <strong>statsmodels.api</strong> instead of <strong>statsmodels.formula.api</strong> and use a matrix of your predictors (or just use the <strong>CausalModel</strong> approach with a matrix, which you’re already using)</li>
+</ul>
 <ol start="6" style="list-style-type: decimal">
 <li>Create a new variable in the data called <code>ipw</code> with the inverse probability weight, and then estimate the treatment effect using those weights in a linear regression (keeping in mind the standard errors won’t be quite right).</li>
 </ol>
 <p>Note that the same tools you used to trim <code>propensity</code> conditional on its value can also be used to calculate <code>ipw</code> in one way for treated observations and in another way for untreated observations.</p>
-<p><strong>Language-specific notes:</strong> - In Python, the trimming process may have converted your <code>ipw</code> variable into an “object” instead of a numeric. You may need to use <code>pd.to_numeric()</code> to fix the variable before using it as a weight. May as well fix <code>propensity</code> while you’re at it.</p>
+<p><strong>Language-specific notes:</strong></p>
+<ul>
+<li>In Python, the trimming process may have converted your <code>ipw</code> variable into an “object” instead of a numeric. You may need to use <code>pd.to_numeric()</code> to fix the variable before using it as a weight. May as well fix <code>propensity</code> while you’re at it.</li>
+</ul>
 <ol start="7" style="list-style-type: decimal">
 <li>Make a common support graph, overlaying the density of the <code>propensity</code> variable for treated observations on top of the density of the <code>propensity</code> variable for untreated observations. You may want to refer to <a href="https://lost-stats.github.io/Presentation/Figures/density_plots.html">this guide</a> if you are not familiar with your language’s graphing capabilities.</li>
 </ol>

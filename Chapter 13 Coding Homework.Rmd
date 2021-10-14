@@ -1,7 +1,7 @@
 ---
 title: "Chapter 13 Coding Homework"
 author: "Nick Huntington-Klein"
-date: "Updated `r Sys.Date()"
+date: "Updated `r Sys.Date()`"
 output: html_document
 ---
 
@@ -15,12 +15,15 @@ Follow the below instructions and turn in both your code and results:
 1. Load the `dengue.csv` file provided to you, or from [this site](https://vincentarelbundock.github.io/Rdatasets/csv/DAAG/dengue.csv). Documentation on the variables is available [here](https://vincentarelbundock.github.io/Rdatasets/doc/DAAG/dengue.html).
 
 *Language-specific instructions*: 
+
 - In R or Python, store the data set as `dengue`
 - In Stata, some of the variables will be read as text. Use `destring *, replace force` to turn them numeric.
 
 2. Run an OLS regression using average humidity to predict whether dengue was observed in the area, and look at the results.
 
-*Language-specific instructions*: In both R and Python, save the model as `m2`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option.
+*Language-specific instructions*: 
+
+- In both R and Python, save the model as `m2`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option.
 
 3. Write two sentences, one interpreting the intercept and one interpreting the slope.
 
@@ -33,16 +36,22 @@ Follow the below instructions and turn in both your code and results:
 
 5. We might recognize that, if we're interested in the effect of humidity on Dengue, temperature might be on a back door. Add a control for temperature, rerun the regression, and show the results.
 
-*Language-specific instructions*: In both R and Python, save the model as `m5`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option.
+*Language-specific instructions*: 
+
+- In both R and Python, save the model as `m5`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option.
 
 6. Our dependent variable is binary, and we're getting predictions below zero, which we might not want. Rerun the regression from question 5 but as a logit model, and report the marginal effects of both slope coefficients.
 
-*Language-specific instructions*: In both R and Python, save the model as `m6`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option.
+*Language-specific instructions*: 
+
+- In both R and Python, save the model as `m6`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option.
 
 
 7. A long one: Now let's say we're directly interested in the relationship between temperature and humidity. Run an OLS regression of humidity on temperature. Calculate the residuals of that regression, and then make a plot that will let you evaluate whether there is likely heteroskedasticity in the model. Rerun the model with heteroskedasticity-robust standard errors. Show both models, and say whether you think there is heteroskedasticity
 
-*Language-specific instructions*: In both R and Python, save the model as `m7`, and `m7b` if you rerun with robust standard errors. 
+*Language-specific instructions*: 
+
+- In both R and Python, save the model as `m7`, and `m7b` if you rerun with robust standard errors. 
 
 In R, use `fiter(!is.na(dengue$humid))` on the data before running the model so the residuals line up properly. Use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option. Also, if you're clever about `msummary()` usage, you can skip creating `m7b`. You can access residuals using `resid(m7)`.
 
@@ -53,7 +62,9 @@ In Python, use `dengue.loc[~pd.isna(dengue['humid'])]` on the data before runnin
 
 8. In the graph in the last problem you may have noticed that for certain ranges of temperate, the errors were clearly nonzero on average. This can indicate a functional form problem. Run the model from question 7 again (with heteroskedasticity-robust standard errors), but this time use the logarithm of humidity in place of humidity. Add a sentence interpreting the coefficient on temperature. 
 
-*Language-specific instructions*: In Python and R, store the model as `m8`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option. 
+*Language-specific instructions*: 
+
+- In Python and R, store the model as `m8`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option. 
 
 In Stata, you'll need to create logged humidity in the data before running the regression. In R and Python you can do it inside of the regression formula, using `np.log()` from **numpy** in Python.
 
