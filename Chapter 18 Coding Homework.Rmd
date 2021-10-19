@@ -1,0 +1,69 @@
+---
+title: "Chapter 18 Coding Homework"
+author: "Nick Huntington-Klein"
+date: "Updated `r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+library(Statamarkdown)
+```
+
+Follow the below instructions and turn in both your code and results:
+ 
+1. In this assignment we will be walking through a very simple application of difference-in-differences that comes from Peter Nencka. In particular, it seemed that the beginning of the COVID-19 pandemic led to a brief craze for homemade sourdough bread, as people had to stay home, and stores were out of yeast (sourdough can be made at home using yeast from the air and does not require store-bought yeast). We will be estimating whether COVID lockdowns actually increased interest in sourdough bread, 
+
+We will be measuring interest in sourdough bread using Google Trends data in the USA. Google Trends tracks the popularity of different search terms over time. We will be comparing the popularity of the search term "sourdough" against the control groups: the search terms "cereal," "soup," and "sandwich," the popularity of which we suspect might not have been meaningfully affected by COVID lockdowns.
+
+Load the data set `sourdough_trends.csv` and look through the data. In R or Python, save the dataset as `sr`.
+
+Then, limit the data to just the variables of interest: `date`, `hits` (the Google Trends index), and `keyword`, the search term we're examining.
+
+Finally, convert the "date" variable to a usable date.
+
+*Language-specific instructions*:
+
+- In R, `date` should be automatically read in as a date-time by `read_csv`. This can be converted to a `date` object using `as.Date()`, or `ymd()` from the **lubridate** package. I might recommend doing the **lubridate** approach just because it's a great package to get used to, and it may come in handy later in the assignment.
+- In Stata, converting `date` will require: (a) using `substr()` to limit the `date` variable to just the characters containing the date (the first ten), (b) using `date(, "YMD")` to create a new date variable in proper date format, (c) dropping the original `date` and renaming the new variable `date`, and (d) using `format date %td` to make the date variable show up as a date when you look at it
+- In Python, `pd.read_csv()` should automatically read  `date` in as a datetime, but you'll still want to convert it using `pd.to_datetime()` (date variables are weird).
+
+2. Make a line graph with `date` on the x-axis and `hits` on the y-axis, with a separate line for each `keyword`. Also add a vertical line for the "start of the pandemic" which we'll decide for our purposes is March 15, 2020.
+
+*Language-specific instructions*:
+
+- In R, you can use `ggplot()` with a `geom_line()` to graph the Apple line,  using `color = keyword` to graph each keyword separately. Add to that a `geom_vline(aes(xintercept = eventdate))` where `eventdate` is a date object, which you can create using `as.Date('YYYY-MM-DD')`. 
+- In Stata, use the `twoway` function, which can graph multiple lines (one for each of the keyword lines and another for the vertial line) using parentheses: `twoway () () () () ()` etc.. The `line` graphs should be in the first four sets of parentheses, and in the last you can do `function y = eventdate, horiz ra(bottom top)`, where `eventdate` is the event date, which you can make with `date("YYYY-MM-DD", "YMD")`, and `bottom top` are the bottom and top of the range you want it to draw the line for (noting the scale for Google Trends goes from 0 to 100). Then, optionally, you can make it easier to tell the lines apart by adding a `legend()` option to the whole thing. If you added the lines, for example, with egg first, then soup, and so on, you could label the lines with `legend(lab(1 "Egg") lab(2 "Soup") etc.)`
+- In Python, you can use `import seaborn as sns` and `sns.lineplot()` to plot the line graph, using `hue` with the `keyword` variable to graph each keyword separately. Then, `import matplotlib.pyplot as plt` and `plt.axvline(eventdate)` to plot the vertical line, where `eventdate` is the event date, created with `pd.to_datetime`.
+
+3. Looking at your graph from problem 2, comment on (a) whether it looks like the lockdown had an effect on the popularity of sourdough, (b) the shape that effect takes (i.e. is it a permanent increase in popularity? Temporary?), (c) whether you might be concerned about any of the control groups we've chosen
+
+4. Create a "Treated" indicator that's equal to 1 for sourdough and 0 otherwise (or True/False, either way). Do a test of whether the prior trends (keeping March 15 as the "treatment date") differ between the treated and control groups, using a linear trend and doing a statistical significance test at the 95% level. Then, if you were concerned about any of the control groups in question 3c, drop any you were concerned about (and keep them dropped for the rest of the assignment) and rerun the test.
+
+Write a line commenting on whether you can reject equal prior trends in your model(s).
+
+*Language-specific instructions*:
+
+- In Python, to use `date` in your regression you'll need a numeric version of it (and reducing its scale) and also scale that numeric version down. This can be done with `sr['date_numeric'] = pd.to_numeric(sr['date'])/100000000000` and then using `date_numeric` in your regression.
+
+5. Create a `month` variable by shifting the `date` variable back 15 days (so that the treatment day is the first day of the month) and then taking the month of the resulting date. Also create an `After` variable equal to 1/0 (or True/False) if the date is March 15 or afterwards.
+
+Then, take a look at the values of `month` you get and how they line up with `date`, and subtract a number from `month` so that the last period just before treatment (Feb 16-Mar 14) is 0. (Also, change the Jan 1-14 month so it's one less than the Jan 15-Feb 14 month)
+
+Then, use two-way fixed effects to estimate the difference-in-difference estimate of the effect of lockdown on sourdough popularity with `keyword` and `month` fixed effects, and standard errors clustered at the `keyword` level.
+
+*Language-specific instructions*:
+
+- In R, load the **lubridate** package if you haven't already. You can then use `-days()` to subtract days from the date, and `month()` to get the month from the date. Then use `feols()` from **fixest** to estimate the model.
+- In Stata, you can shift the days by just subtracting a number from the `date` variable, and then use `month()` to get the month. Then use `reghdfe` (after downloading it, if necessary) to estimate the model.
+- In Python, you can shift the days by adding `+pd.DateOffset(days = )` and then get month by taking the shifted date array and applying `.dt.month`. Then, after you create the `After` variable you'll want to manually create the interaction term as a 0/1 (not False/True) variable using `1*sr['Treated']*sr['After']`
+
+
+6. Now, let's allow the effect to be dynamic over time. Estimate a difference-in-difference model allowing the effect to differ by month (using `month = 0` as a reference period), with standard errors clustered at the keyword level, and show the results.
+
+*Language-specific instructions*:
+
+- In Stata you'll need to undo the step where the period just before treatment is 0, since Stata requires all factor values to be nonnegative. Keep track of what your new reference-point-just-before-treatment is!
+- In Python, if you're copying the interaction-making code from the book, the negative periods will cause problems when creating the variable names. So either add a number back to your month variable so they're all non-negative (after doing `.reset_index()`, and keep track of where the new period-before-treatment is), or adjust the variable-naming procedure to avoid the `-` in it.
+
+7. Make a graph demonstrating the results of your dynamic difference-in-differences model. Describe both what the effect looks like and also whether this graph gives you any concerns about prior trends violations.
