@@ -1,0 +1,65 @@
+---
+title: "Chapter 19 Coding Homework"
+author: "Nick Huntington-Klein"
+date: "Updated `r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+library(Statamarkdown)
+```
+
+We will be looking at, and replicating, [this](https://www.aeaweb.org/articles?id=10.1257/aer.104.1.84) paper which looks at the influence of the mass emigration of French Huguenots to Prussia in the 17th century. It specifically looks at the effect of skilled immigration to places with underused economic potential on their productivity. It instruments for immigration with population loss in a Prussian area during the Thirty Years’ War - immigrants were encouraged to move to places that had lost a lot of people.
+
+Follow the below instructions and turn in both your code and results:
+ 
+1. Load the `iv_hornug_data.dta` data file (this is a Stata data file, details for loading below), and then limit the variables data to `ln_output1802_all` (the dependent variable), `hugue_1700_pc` (the measure of immigration), `poploss_keyser` (the instrument), and the control variables `ln_workers1802_all`, `ln_looms1802_all`, `mi_ln_input1802_all`, `no_looms`, `ln_popcity1802`, `vieh1816_schaf_ganz_veredelt_pc`, `pop1816_prot_pc`, `no_hugue_possible`, `imputed_dummy`, `textil_1680_dummy`. In R or Python, store the data set as `hr`.
+
+Variable descriptions are:
+
+| Variable | Description |
+| -------- | ----------- |
+| ln_output1802_all | (ln) Output |
+| hugue_1700_pc | % Huguenots 1700 |
+| poploss_keyser | Pop losses in 30 Years’ War, Keyser |
+| ln_workers1802_all | (ln) Workers |
+| ln_looms1802_all | (ln) Looms |
+| mi_ln_input1802_all | (ln) Value of Materials (imputed) |
+| no_looms | Not using looms (dummy) |
+| ln_popcity1802 | (ln) Town Population 1802 |
+| vieh1816_schaf_ganz_veredelt_pc | Merino sheep p.c. 1816 (county) |
+| pop1816_prot_pc | % Protestant |
+| no_hugue_possible | Not Prussia in 1700 (dummy) |
+| imputed_dummy | Dummy for imputed values |
+| textil_1680_dummy | Relevant textile production before 1685 (dummy) |
+
+
+*Language-specific instructions*:
+
+- In R, the `read_stata()` function in the **haven** package can be used to read the Stata file.
+- In Python, `pd.read_stata()` can be used.
+
+2. Run an OLS regression using your regular-ol' OLS-running command of the "first stage" of this IV analysis, regressing the measure of immigration on the instrument and all controls. Also produce an F statistic testing whether the coefficient on the instrument is 0. Comment on what you see, keeping in mind that the Stock and Yogo cutoff for one treatment and one control to ensure that IV bias is less than 10% of OLS bias is 16.38. (And while I'm having you do this exercise and it provides useful information, remember that *stopping* the analysis because of failing to meet this cutoff has all sorts of problems! Remember how this was discussed in the chapter). Outside of Stock & Yogo, any major concerns from what you see in this regression?
+
+3. Ignoring the controls, produce a scatterplot graph with immigration on the y-axis and the instrument on the x-axis. Comment on what you see. Does this look like a strong relationship? Does the relationship look linear? 
+
+4. Run two 2SLS regressions, and display their estimates in a shared table, all using heteroskedasticity-robust standard errors. First, estimate 2SLS "by hand" by estimating the first stage like in Step 2, getting the predicted values, and using that in the second stage (remember, the standard errors for this one will definitely be wrong). Second, estimate the same model (again using 2SLS) but using a command specially designed to estimate IV. Then, show both regression results on a shared table (optionally, you may make the table show only the coefficient on the immigration variable, if you'd like it to be a bit cleaner).
+
+*Language-specific instructions*:
+
+- Shared regression tables can be done using `msummary()` from **modelsummary** in R, or `esttab` from **estout** in Stata.
+- In R and Python, to add the predicted values to the data, you'll need to deal with the fact that some observations were dropped from the data to estimate the model, so there are fewer predicted values than rows in the data. This can be solved in R by using `predict(model, newdata = hr)` instead of just `predict(model)`, and in Python by `hr$model.predict(hr)`. 
+- In Python, note that the `cov_type` to get heteroskedasticity-robust standard errors with **linearmodels** functions instead of **statsmodels** functions is `'robust'`, not `'hc3'`. Also, skip the shared table (since `Stargazer()` does not support **linearmodels** output) and just summarize both regressions.
+
+5. Run a third 2SLS model, this time without robust SEs but with adding the square of the instrument as a second instrument. Show the F statistic testing whether the coefficients on the instrument are jointly 0, and comment on what you see (the Stock and Yogo cutoff from Step 2 is now 19.93, note). Then, show the results of this third 2SLS model on the same table as the first two models from Step 4.
+
+6. Our model from Step 5 has two instruments, so we can run an overidentification test on it. Comment on whether an overidentification test makes sense in this context or not, *and why*. Then, regardless of whether it makes sense, run the test (the Sargan, if you have a choice) and interpret the result.
+
+7. Re-estimate the same model from Step 5, but this time use GMM to estimate the model. In R or Stata, show the results in a table shared with the model from Step 5.
+
+8. If you are using R or Stata, re-estimate the 2SLS model using Anderson-Rubin confidence intervals. Comment on how this changes the results relative to the last model you ran in Step 4.
+
+*Language-specific instructions*:
+
+- As it mentions in the chapter, you'll first need to re-estimate your Step 4 model using the `ivreg` function from **AER**. Note that `ivreg` formula syntax is `y ~ d + x | z + x`, where `d` is treatment, `z` is the instrument, and `x` are controls. Controls must go on both sides of the `|`, unlike in `feols()`.
