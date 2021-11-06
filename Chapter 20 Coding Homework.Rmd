@@ -1,0 +1,101 @@
+---
+title: "Chapter 20 Coding Homework"
+author: "Nick Huntington-Klein"
+date: "Updated `r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+library(Statamarkdown)
+```
+
+We will be replicating part of the paper [Snapping Back: Food Stamp Bans and Criminal Recidivism](https://www.aeaweb.org/articles?id=10.1257/pol.20170490) by Cody Tuttle. This paper is technically an event study in the book's lingo (with a time-based running variable) but for coding-practice purposes it will work fine for regression discontinuity (like mentioned in the chapter, event studies and regression discontinuity are very similar ideas, but the different kinds of running variables make for meaningful differences). 
+
+In this study, Tuttle looks at a 1996 federal welfare reform that banned convicted drug felons from ever receiving food stamp benefits (food aid).^[This would also get your banned from TANF, or temporary assistance for needy families, but most offenders are men and fairly few TANF recipients are men, so the author argues it's fair to say we're looking at the effects of food stamps here, not TANF.] In Florida, the ban was modified so that only offenses committed after August 23, 1996 got you banned from food stamps. This gives a sharp time-based discontinuity: if your offense was committed before August 23, 1996, you are banned from food stamps. On or after, you are not.
+
+Follow the below instructions and turn in both your code and results:
+ 
+1.  Load the `florida_offenders.dta` data file. In R or Python, call it `fo`. Limit the data to between one year before the treatment date to one year after. Then make a table of summary statistics so you can get a sense of the variables. Variable descriptions are as follows:
+
+| Variable | Description |
+| -------- | ----------- |
+| distnoab | Day of offense, relative to August 23, 1996 |
+| age | Age at time of offense |
+| black | Whether or not the offender is black (1 = black) |
+| anyrecid | Whether or not the offender offended again |
+| finrecidany | Whether the recidivism was of a financially motivated nature |
+| nonfinrecidany | Whether the recidivism was of a non-financially motivated nature |
+
+
+*Language-specific instructions*:
+
+- In R, the `read_stata()` function in the **haven** package can be used to read the Stata file. There are many options for making your summary statistics table, but one is just `summary()`.
+- In Stata, you can make summary statistics with `summarize`.
+- In Python, `pd.read_stata()` can be used. `fo.describe()` can produce summary statistics.
+
+2. Let's start by making a basic graph that will give us a suggestion as to whether there's any effect here. Create a new variable `day_bins` that gathers `distnoab` into bins of 60 days each. Then, create a scatterplot graph with `day_bins` on the x-axis and average `finrecidany` on the y-axis, with a vertical line at `day_bins = 0`. We're using `finrecidany` rather than the other outcomes because the original paper found that most of the effect was on financially-motivated crimes, suggesting that people were making up for the lost income with crime.
+
+Write a brief comment on whether it looks like there's an effect we'll capture with RDD.
+
+Note: Your graph will probably graph much faster if you make a data set with only one row per `day_bins` value before graphing.
+
+*Language-specific instructions*:
+
+- In R or Stata, you can create `day_bins` with `floor(distnoab/60)`. In Python it's the same idea but with `np.floor()` from **numpy**.
+- In R, you can get average `finrecidany` within values of `day_bins` by making a new dataset with `group_by(day_bins) %>% summarize(finrecidanymean = mean(finrecidany))` 
+- In Stata, you can get average `finrecidany` within values of `day_bins` using `collapse (mean) finrecidany, by(day_bins)` (don't forget to `preserve` beforehand and `restore` after to get your original data back)
+- In Python, you can get average `finrecidany` within values of `day_bins` by making a new data set using `fo.groupby('day_bins').aggregate('mean')`. You can get the bins back out for plotting with `.index` from the resulting data.
+
+3. Now let's graph the density. Repeat your analysis from step 2, but instead of making a scatterplot of the mean of `finrecidany`, graph the *number of observations* in each bin. Then, calculate the proportion of observations that end in the digit 0. Write two lines of comment: (a) Do you see anything that makes you concerned about manipulation of the running variable? (b) do you see anything that makes you concerned about heaping in the running variable due to rounding? (and would it make any sense to expect heaping here?)
+
+*Language-specific instructions*:
+
+- You can check whether a `distnoab` ends in 0 using modular arithmetic. X modulo 10 (i.e. the remainder after dividing X by 10) will be 0 if X ends in a 0. In R, X modulo 10 is `X %% 10`. In Stata it's `mod(X,10)`. In Python it's `X % 10`.
+- In R, you can count the number of values witin `day_bins` by making a new dataset with `group_by(day_bins) %>% summarize(count = n())`
+- In Stata, you can count the number of values witin `day_bins` using `generate count = 1` and then `collapse (sum) count, by(day_bins)` (don't forget to `preserve` beforehand and `restore` after to get your original data back)
+- In Python, you can count the number of values witin `day_bins` by making a new data set using `fo.groupby('day_bins').aggregate(???)`.
+
+4. Use the `rddensity` command from the **rddensity** package to test for a discontinuity in the density at the cutoff of 0. In a comment, first specify whether you can statistically reject the null of no disccontinuous break at the 95% level, and then demonstrate you've read the command's documentation by writing the default polynomial order used to construct the density estimator.
+
+*Language-specific instructions*:
+
+- In R, `rddensity()` needs to be sent through `summary()` to produce a p-value.
+- As of this writing, many elements of the RDpackages universe have come to Python, but **rddensity** is not one of them. If that's still true when you read this (check [this website](https://rdpackages.github.io/rddensity/)) then if you're doing Python either skip this question or use **rpy2** to run the command in R from Python. But it should be coming soon, so check that page and, if it's there, complete this question.
+
+5. Our data only has 1356 usable observations, and many of these aren't all that close to the cutoff. So we might be concerned that we don't really have enough observations to work with. Use `rdpower` (`rdpow` in Stata) from the **rdpower** package to see if a local-linear-regression regression discontinuity with a triangular kernel (that's all the default, don't worry) has 80% power to identify an increase of `finrecidany` by `.05` (not the default).
+
+Note power levels for the effect size (tau) you select (as well as for a range of smaller effects, but we want the one for the full .05) are shown as "robust bias-corrected" values.
+
+*Language-specific instructions*:
+
+- In R, you'll need to convert your data into a two-column matrix - first `select(finrecidany, distnoab)` to get your two columns, and then use `as.matrix()` to make it a matrix.
+- As of this writing, many elements of the RDpackages universe have come to Python, but **rdpower** is not one of them. If that's still true when you read this (check [this website](https://rdpackages.github.io/rdpower/)) then if you're doing Python either skip this question or use **rpy2** to run the command in R from Python. But it should be coming soon, so check that page and, if it's there, complete this question.
+
+6. Depending on the results we got in Step 5 we may want to reevaluate, but for the purposes of this coding exercise let's press on. Use OLS to estimate the regression discontinuity design, getting the effect of treatment (not being allowed food stamps; i.e. being above the cutoff) on `finrecidany`. Use a linear model, and apply a triangular kernel weight with a bandwidth of 100. Comment on the effect you find.
+
+You can create the triangular kernel weight using the formula `1 - abs(distnoab)/100` where `abs()` is the absolute value function. Then set the weight to 0 instead of being negative, anywhere it's negative. Convert these steps into your language of choice and apply it as a sample weight. Be sure to look at your data to make sure this worked properly.
+
+*Language-specific instructions*:
+
+- `smf.wls()` will give you bad results if you include observations with weights of 0. So you'll want to limit the data only to observations with non-zero weights before estimating the model in Python.
+
+7. We would like to check whether our assumption of smoothness at the cutoff is plausible. We can do this with a placebo test. Re-perform your analysis from Step 6 twice, using `black` and `age` as the dependent variables. Comment on what you find.
+
+8. How sensitive are our results to the choice of bandwidth? Repeat your analysis from Step 6 while changing the bandwidth of the triangular kernel to, in turn, 25, 50, 75, 100, 125, and 150. Each time, recreate the triangular weights and re-estimate your regression. Automating this process in some sort of loop is encouraged but not required. Show your results in a shared regression table (or, if you want to get fancy, plot the coefficients and their error bars) and comment on what you see.
+
+9. Now let's bring in a few more bells and whistles, applying bias correction and local polynomials with optimal bandwidth selection. Use `rdrobust` from the **rdrobust** package (with all options kept to their defaults) to estimate the model. Write a comment on the estimate you find. Then demonstrate you've read the command's help file by also writing down the default variance-covariance procedure the command uses.
+
+*Language-specific instructions*:
+
+- The Python version of **rdrobust** was released between the time the book was finished and the time of this writing. So the book doesn't have example code for you. But you can get examples from the [package website](https://rdpackages.github.io/rdrobust/) and the [walkthrough example](https://github.com/rdpackages/rdrobust/blob/master/Python/rdrobust_illustration.py) it provides. Do note you'll need to `print()` its output to see the results.
+
+10. Now use `rdplot` from the **rdrobust** package to plot the estimation we're looking at. Set the polynomial order to 2 to match what is used in `rdrobust`. Comment on what you see, perhaps comparing it to the graph you made earlier in the assignment.
+
+*Language-specific instructions*:
+
+- The Python version of **rdrobust** was released between the time the book was finished and the time of this writing. So the book doesn't have example code for you. But you can get examples from the [package website](https://rdpackages.github.io/rdrobust/) and the [rdplot walkthrough example](https://github.com/rdpackages/rdrobust/blob/master/Python/rdplot_illustration.py) it provides.
+
+11. This is a sharp regression discontinuity, but let's run a fuzzy regression discontinuity just to get the coding practice in, and let's toss in a regression kink while we're at it (no particular reason to believe it's the *slope* of recidivism that would change, but we can run the code). First, use the `deriv` option in `rdrobust` to estimate a regression kink design. Then, add a new `treated` variable that's just a completely random variable that's all 0s or 1s, and use that as the treatment status indicator to run a fuzzy regression discontinuity.
+
+Don't worry too much about the results - neither of these models make much sense. Just get used to setting up the code.
