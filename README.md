@@ -8,4 +8,4 @@ There are two types of assignments: regular homework quesions in Word format, an
 
 Answers are not included. If you would like the answer keys, please email nhuntington-klein@seattleu.edu from an .edu address with proof that you are an instructor of a course that uses or will use The Effect.
 
-Assignments are currently available for chapters 2-11 and 13-14.
+Assignments are currently available for chapters 2-11 and 13-20.
