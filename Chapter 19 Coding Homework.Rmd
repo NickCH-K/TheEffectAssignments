@@ -14,7 +14,7 @@ We will be looking at, and replicating, [this](https://www.aeaweb.org/articles?i
 
 Follow the below instructions and turn in both your code and results:
  
-1. Load the `iv_hornug_data.dta` data file (this is a Stata data file, details for loading below), and then limit the variables data to `ln_output1802_all` (the dependent variable), `hugue_1700_pc` (the measure of immigration), `poploss_keyser` (the instrument), and the control variables `ln_workers1802_all`, `ln_looms1802_all`, `mi_ln_input1802_all`, `no_looms`, `ln_popcity1802`, `vieh1816_schaf_ganz_veredelt_pc`, `pop1816_prot_pc`, `no_hugue_possible`, `imputed_dummy`, `textil_1680_dummy`. In R or Python, store the data set as `hr`.
+1. Load the `iv_hornug_data.dta` data file (this is a Stata data file, details for loading below), and then limit the variables to `ln_output1802_all` (the dependent variable), `hugue_1700_pc` (the measure of immigration), `poploss_keyser` (the instrument), and the control variables `ln_workers1802_all`, `ln_looms1802_all`, `mi_ln_input1802_all`, `no_looms`, `ln_popcity1802`, `vieh1816_schaf_ganz_veredelt_pc`, `pop1816_prot_pc`, `no_hugue_possible`, `imputed_dummy`, `textil_1680_dummy`. In R or Python, store the data set as `hr`.
 
 Variable descriptions are:
 
@@ -49,7 +49,7 @@ Variable descriptions are:
 *Language-specific instructions*:
 
 - Shared regression tables can be done using `msummary()` from **modelsummary** in R, or `esttab` from **estout** in Stata.
-- In R and Python, to add the predicted values to the data, you'll need to deal with the fact that some observations were dropped from the data to estimate the model, so there are fewer predicted values than rows in the data. This can be solved in R by using `predict(model, newdata = hr)` instead of just `predict(model)`, and in Python by `hr$model.predict(hr)`. 
+- In R and Python, to add the predicted values to the data, you'll need to deal with the fact that some observations were dropped from the data to estimate the model, so there are fewer predicted values than rows in the data. This can be solved in R by using `predict(model, newdata = hr)` instead of just `predict(model)`, and in Python by `model.predict(hr)`. 
 - In Python, note that the `cov_type` to get heteroskedasticity-robust standard errors with **linearmodels** functions instead of **statsmodels** functions is `'robust'`, not `'hc3'`. Also, skip the shared table (since `Stargazer()` does not support **linearmodels** output) and just summarize both regressions.
 
 5. Run a third 2SLS model, this time without robust SEs but with adding the square of the instrument as a second instrument. Show the F statistic testing whether the coefficients on the instrument are jointly 0, and comment on what you see (the Stock and Yogo cutoff from Step 2 is now 19.93, note). Then, show the results of this third 2SLS model on the same table as the first two models from Step 4.
@@ -62,4 +62,4 @@ Variable descriptions are:
 
 *Language-specific instructions*:
 
-- As it mentions in the chapter, you'll first need to re-estimate your Step 4 model using the `ivreg` function from **AER**. Note that `ivreg` formula syntax is `y ~ d + x | z + x`, where `d` is treatment, `z` is the instrument, and `x` are controls. Controls must go on both sides of the `|`, unlike in `feols()`.
+- In R, as it mentions in the chapter, you'll first need to re-estimate your Step 4 model using the `ivreg` function from **AER**. Note that `ivreg` formula syntax is `y ~ d + x | z + x`, where `d` is treatment, `z` is the instrument, and `x` are controls. Controls must go on both sides of the `|`, unlike in `feols()`.

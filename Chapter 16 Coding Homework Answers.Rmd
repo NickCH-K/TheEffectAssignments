@@ -22,16 +22,91 @@ Follow the below instructions and turn in both your code and results:
    - expp: expenditure per pupil
    - lunch: the percentage of students eligible for free lunch
    
+R: 
+
+```{r}
+library(tidyverse)
+
+mp <- read_csv('mathpnl.csv') %>%
+  select(distid, year, math4, expp, lunch)
+            
+```
+
+Stata:
+
+```{stata}
+import delimited "mathpnl.csv", clear
+
+keep distid year math4 expp lunch
+```
+
+Python:
+
+```{python}
+import pandas as pd
+
+mp = pd.read_csv('mathpnl.csv')
+mp = mp[['distid', 'year', 'math4', 'expp', 'lunch']]
+```
+
 2. Panel data is often described as "N by T". That is, the number of different individuals N and the number of time periods T. Write code that outputs what N and T are in this data.
 
-*Language-specific instructions*: 
+*Language-specific instructions*:
 
 - This will entail counting the number of unique values of your individual and time identifiers. In R try `unique()` to get the unique values and `length()` to count how many there are, or similarly `pd.unique()` and `len()` in Python. In Stata try `codebook` to get the number of unique values.
 
+```{r}
+# N:
+length(unique(mp$distid))
+# T:
+length(unique(mp$year))
+```
+
+Stata:
+
+```{stata}
+codebook distid
+codebook year
+```
+
+Python:
+
+```{python}
+len(pd.unique(mp['distid']))
+len(pd.unique(mp['year']))
+```
+
+It's N=550 observations and T=7 time periods.
 
 3. A *balanced* panel is one in which each individual shows up in every single time period. You can check whether a data set is a balanced panel by seeing whether the number of unique time periods each individual ID shows up in is the same as the number of unique time periods, or whether the number of unique individual IDs in each time period is the same as the total number of unique individual IDs. Think to yourself a second about why these procedures would check that this is a balanced panel. Then, check whether this data set is a balanced panel.
 
 (hint: there are many ways to do this, but the easiest is to limit the data to just individual ID and year, drop any duplicates (keeping only `unique()` values in R, `drop duplicates` in Stata, or `.drop_duplicates()` in Python), and tabulating how many times each year appears (`table()` in R, `tabulate` in Stata, `.value_counts()` in Python))
+  
+```{r}
+mp %>%
+  select(distid, year) %>%
+  unique() %>%
+  pull(year) %>%
+  table()
+```
+
+Stata:
+
+```{stata}
+preserve
+keep distid year
+duplicates drop
+tab year
+restore
+```
+
+Python:
+
+```{python}
+mp.loc[:,['distid','year']].drop_duplicates().value_counts('year')
+```  
+
+After dropping duplicates, each year shows up exactly 550 times, the same as the overall number of individual IDs. This is a balanced panel.
 
 4. Run an OLS regression, with no fixed effects, of `math4` on `expp` and `lunch`. Store the results as `m1`.
 
@@ -39,10 +114,62 @@ Follow the below instructions and turn in both your code and results:
 
 - Yes, store them in Stata too. Following your regression use `estimates store`.
 
+```{r}
+m1 <- lm(math4 ~ expp + lunch, data = mp)
+```
+
+Stata:
+
+```{stata}
+reg math4 expp lunch
+estimates store m1
+```
+
+Python:
+
+```{python}
+import statsmodels.formula.api as smf
+
+m1 = smf.ols('math4~expp+lunch', data = mp).fit()
+``` 
+
 
 5. Modify the model in step 4 to include fixed effects for `distid` "by hand". That is, subtract out the within-`distid` mean of `math4`, `expp`, and `lunch`, creating new variables `math4_demean`, `expp_demean`, and `lunch_demean`, and re-estimate the model using those variables, storing the result as `m2`. 
 
 (tip: be careful that your code doesn't overwrite the original variables, or at least if it does, reload the data afterwards)
+
+R:
+```{r}
+mp <- mp %>%
+  group_by(distid) %>%
+  mutate(math4_demean = math4 - mean(math4),
+         expp_demean = expp - mean(expp),
+         lunch_demean = lunch - mean(lunch))
+m2 <- lm(math4_demean ~ expp_demean + lunch_demean, data = mp)
+```
+
+Stata:
+
+```{stata}
+* Could do this one at a time, or speed up slightly with a loop
+foreach var of varlist math4 expp lunch {
+	by distid, sort: egen temp = mean(`var')
+	g `var'_demean = `var' - temp
+	drop temp
+}
+reg math4_demean expp_demean lunch_demean
+estimates store m2
+```
+
+Python:
+
+```{python}
+import numpy as np
+
+mp[['math4_demean','expp_demean','lunch_demean']] = (mp.groupby('distid')[['math4','expp','lunch']].transform(lambda x: x - np.mean(x)))
+
+m2 = smf.ols('math4_demean~expp_demean+lunch_demean', data = mp).fit()
+```
 
 6. Next we're going to estimate fixed effects by including `distid` as a set of dummies. This can be extremely slow, so for demonstration purposes use only the first 500 observations of your data (don't get rid of the other observations, though, you'll want them for the rest of this assignment). Run the model from step 4 but with dummies for different values of `distid`, saving the result as `m3`. Then, do a joint F test on the dummies (see Chapter 13), and report if you can reject that the dummies are jointly zero at the 99% level.
 
@@ -52,17 +179,111 @@ Tip: `distid` is stored as a numeric variable, but you want it to be treated as 
 
 - For Python, visit [this page](https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLSResults.f_test.html) of the **statsmodels** documentation. The first example shows how to do a joint F-test comparing a long list of parameters to 0. You'll need to change the `1:` part, though. So pay attention to which parameter index numbers have the coefficients you want to test.
 
+R:
+
+```{r}
+m3 <- lm(math4 ~ expp + lunch + factor(distid), data = mp %>% slice(1:500))
+
+library(car)
+linearHypothesis(m3,matchCoefs(m3,'distid'))
+```
+
+Stata:
+
+```{stata}
+reg math4 expp lunch i.distid in 1/500
+estimates store m3
+testparm i.distid
+```
+
+Python:
+
+```{python}
+m3 = smf.ols('math4~expp+lunch+C(distid)', data = mp[0:999]).fit()
+
+R = np.identity(len(m3.params))
+R = R[1:(len(m3.params)-2),:]
+m3.f_test(R)
+``` 
+
+The p-value on the F-test is far below .01, so we can reject that the fixed effects are jointly 0 at the 99% level.
 
 7. Now we will use a specially-designed function to estimate a model with fixed effects. (Using the whole data set once again), use `feols()` from the **fixest** package in R, `reghdfe` from the **reghdfe** package in Stata, or `PanelOLS` from **linearmodels** in Python to estimate the model from step 4 but with fixed effects for `distid`. Save the result as `m4`. Include standard errors clustered at the `distid` level.
 
+R: 
+
+```{r}
+library(fixest)
+m4 <- feols(math4 ~ expp + lunch | distid, data = mp)
+```
+
+Stata:
+
+```{stata}
+* ssc install reghdfe
+reghdfe math4 expp lunch, a(distid) vce(cluster distid)
+estimates store m4
+```
+
+Python:
+
+```{python}
+import linearmodels as lm
+
+mp = mp.set_index(['distid','year'])
+
+m4 = lm.PanelOLS.from_formula('math4~expp+lunch + EntityEffects', data = mp).fit(cov_type = 'clustered', cluster_entity = True)
+``` 
 
 8. Now add fixed effects for year to your model from step 7 to create a two-way fixed effects model. Keep the standard errors clustered at the `distid` level. Save the results as `m5`.
 
+R: 
+
+```{r}
+m5 <- feols(math4 ~ expp + lunch | distid + year, data = mp)
+```
+
+Stata:
+
+```{stata}
+reghdfe math4 expp lunch, a(distid year) vce(cluster distid)
+estimates store m5
+```
+
+Python:
+
+```{python}
+m5 = lm.PanelOLS.from_formula('math4~expp+lunch + EntityEffects + TimeEffects', data = mp).fit(cov_type = 'clustered', cluster_entity = True)
+``` 
 
 9. Using `modelsummary()` from **modelsummary** in R, `esttab` from **estout** in Stata, or `Stargazer` from **stargazer.stargazer** in Python, make a regression table including `m1` through `m5` in the same table so you can compare them all. Read the documentation of your command to figure out how to include the `expp`, `lunch`, `expp_demean`, and `lunch_demean` predictors in the table without clogging the thing up with a bunch of dummy coefficients from `m3`.
 
 Write down two interesting things you notice from the table. Multiple possible answers here.
 
+R: 
+
+```{r}
+library(modelsummary)
+# the stars argument here is optional
+msummary(list(m1,m2,m3,m4,m5), coef_omit = 'distid', stars = c('*'=.1,'**'=.05,'***'=.01))
+```
+
+Stata:
+
+```{stata}
+*ssc install estout
+esttab m1 m2 m3 m4 m5, drop(*.distid)
+```
+
+Python:
+
+```{python}
+from stargazer.stargazer import Stargazer
+regtable = Stargazer([m1,m2,m3,m4,m5])
+regtable.render_html()
+```
+
+Some interesting observations include that models 2-4 produce the exact same coefficients (except for the intercept), and the possibly surprising fact that the two-way fixed effects model finds no effect of `expp` or `lunch`.
 
 10. Finally, we'll close it out by using correlated random effects instead of fixed effects (see 16.3.3). You already have `expp_demean` and `lunch_demean` from earlier. Now, modify the code from that slightly to add on `expp_mean` and `lunch_mean` (the mean within `distid` instead of the value *minus* that mean). Then, regress `math4` on `expp_demean`, `lunch_demean`, `expp_mean`, and `lunch_mean`, with random effects for `distid` using `lmer()` from **lme4** in R, `xtreg, re` in Stata, or `RandomEffects` from **linearmodels** in Python. Show a summary of the regression results.
 
@@ -70,3 +291,36 @@ Write down two interesting things you notice from the table. Multiple possible a
 
 - In R, `lmer()` has a hard time with numeric variables as categorical indicators. Create a new, factor version of `distid` directly in the data before running the model, and use that instead.
 
+```{r}
+library(lme4)
+
+mp <- mp %>%
+   mutate(distid_factor = factor(distid)) %>%
+  group_by(distid) %>%
+  mutate(expp_mean = mean(expp),
+         lunch_mean = mean(lunch))
+m6 <- lmer(math4 ~ (1|distid_factor) + expp_demean + lunch_demean + expp_mean + lunch_mean, data = mp)
+summary(m6)
+```
+
+Stata:
+
+```{stata}
+xtset distid
+* Could do this one at a time, or speed up slightly with a loop
+foreach var of varlist expp lunch {
+	by distid, sort: egen `var'_mean = mean(`var')
+}
+
+xtreg math4 expp_demean lunch_demean expp_mean lunch_mean, re
+```
+
+Python:
+
+```{python}
+mp[['expp_mean','lunch_mean']] = (mp.groupby('distid')[['expp','lunch']].transform(lambda x: np.mean(x)))
+
+m6 = lm.RandomEffects.from_formula('math4~expp_demean+lunch_demean+expp_mean+lunch_mean', data=mp).fit()
+
+m6
+```

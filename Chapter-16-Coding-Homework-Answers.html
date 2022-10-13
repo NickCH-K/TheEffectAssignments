@@ -12,7 +12,7 @@
 <meta name="author" content="Nick Huntington-Klein" />
 
 
-<title>Chapter 19 Coding Homework</title>
+<title>Chapter 16 Coding Homework</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -362,183 +362,304 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Chapter 19 Coding Homework</h1>
+<h1 class="title toc-ignore">Chapter 16 Coding Homework</h1>
 <h4 class="author">Nick Huntington-Klein</h4>
 <h4 class="date">Updated 2022-10-13</h4>
 
 </div>
 
 
-<p>We will be looking at, and replicating, <a href="https://www.aeaweb.org/articles?id=10.1257/aer.104.1.84">this</a>
-paper which looks at the influence of the mass emigration of French
-Huguenots to Prussia in the 17th century. It specifically looks at the
-effect of skilled immigration to places with underused economic
-potential on their productivity. It instruments for immigration with
-population loss in a Prussian area during the Thirty Years’ War -
-immigrants were encouraged to move to places that had lost a lot of
-people.</p>
 <p>Follow the below instructions and turn in both your code and
 results:</p>
 <ol style="list-style-type: decimal">
-<li>Load the <code>iv_hornug_data.dta</code> data file (this is a Stata
-data file, details for loading below), and then limit the variables to
-<code>ln_output1802_all</code> (the dependent variable),
-<code>hugue_1700_pc</code> (the measure of immigration),
-<code>poploss_keyser</code> (the instrument), and the control variables
-<code>ln_workers1802_all</code>, <code>ln_looms1802_all</code>,
-<code>mi_ln_input1802_all</code>, <code>no_looms</code>,
-<code>ln_popcity1802</code>,
-<code>vieh1816_schaf_ganz_veredelt_pc</code>,
-<code>pop1816_prot_pc</code>, <code>no_hugue_possible</code>,
-<code>imputed_dummy</code>, <code>textil_1680_dummy</code>. In R or
-Python, store the data set as <code>hr</code>.</li>
-</ol>
-<p>Variable descriptions are:</p>
-<table>
-<thead>
-<tr class="header">
-<th>Variable</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>ln_output1802_all</td>
-<td>(ln) Output</td>
-</tr>
-<tr class="even">
-<td>hugue_1700_pc</td>
-<td>% Huguenots 1700</td>
-</tr>
-<tr class="odd">
-<td>poploss_keyser</td>
-<td>Pop losses in 30 Years’ War, Keyser</td>
-</tr>
-<tr class="even">
-<td>ln_workers1802_all</td>
-<td>(ln) Workers</td>
-</tr>
-<tr class="odd">
-<td>ln_looms1802_all</td>
-<td>(ln) Looms</td>
-</tr>
-<tr class="even">
-<td>mi_ln_input1802_all</td>
-<td>(ln) Value of Materials (imputed)</td>
-</tr>
-<tr class="odd">
-<td>no_looms</td>
-<td>Not using looms (dummy)</td>
-</tr>
-<tr class="even">
-<td>ln_popcity1802</td>
-<td>(ln) Town Population 1802</td>
-</tr>
-<tr class="odd">
-<td>vieh1816_schaf_ganz_veredelt_pc</td>
-<td>Merino sheep p.c. 1816 (county)</td>
-</tr>
-<tr class="even">
-<td>pop1816_prot_pc</td>
-<td>% Protestant</td>
-</tr>
-<tr class="odd">
-<td>no_hugue_possible</td>
-<td>Not Prussia in 1700 (dummy)</td>
-</tr>
-<tr class="even">
-<td>imputed_dummy</td>
-<td>Dummy for imputed values</td>
-</tr>
-<tr class="odd">
-<td>textil_1680_dummy</td>
-<td>Relevant textile production before 1685 (dummy)</td>
-</tr>
-</tbody>
-</table>
-<p><em>Language-specific instructions</em>:</p>
+<li><p>Load the <code>mathpnl.csv</code> data file provided (in R or
+Python store it as <code>mp</code>), which comes from Leslie Papke and
+consists of data at the school district level, and was featured in the
+Wooldridge (2010) textbook.</p>
+<p>We are only going to be working with a few variables. Limit the data
+to these variables:</p>
 <ul>
-<li>In R, the <code>read_stata()</code> function in the
-<strong>haven</strong> package can be used to read the Stata file.</li>
-<li>In Python, <code>pd.read_stata()</code> can be used.</li>
-</ul>
+<li>distid: the district identifier (our “individual” for fixed
+effects)</li>
+<li>year: the year the data is from</li>
+<li>math4: the percentage of 4th grade students who are “satisfactory”
+or better in math</li>
+<li>expp: expenditure per pupil</li>
+<li>lunch: the percentage of students eligible for free lunch</li>
+</ul></li>
+</ol>
+<p>R:</p>
+<pre class="r"><code>library(tidyverse)
+
+mp &lt;- read_csv(&#39;mathpnl.csv&#39;) %&gt;%
+  select(distid, year, math4, expp, lunch)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>import delimited &quot;mathpnl.csv&quot;, clear
+
+keep distid year math4 expp lunch</code></pre>
+<p>Python:</p>
+<pre class="python"><code>import pandas as pd
+
+mp = pd.read_csv(&#39;mathpnl.csv&#39;)
+mp = mp[[&#39;distid&#39;, &#39;year&#39;, &#39;math4&#39;, &#39;expp&#39;, &#39;lunch&#39;]]</code></pre>
 <ol start="2" style="list-style-type: decimal">
-<li><p>Run an OLS regression using your regular-ol’ OLS-running command
-of the “first stage” of this IV analysis, regressing the measure of
-immigration on the instrument and all controls. Also produce an F
-statistic testing whether the coefficient on the instrument is 0.
-Comment on what you see, keeping in mind that the Stock and Yogo cutoff
-for one treatment and one control to ensure that IV bias is less than
-10% of OLS bias is 16.38. (And while I’m having you do this exercise and
-it provides useful information, remember that <em>stopping</em> the
-analysis because of failing to meet this cutoff has all sorts of
-problems! Remember how this was discussed in the chapter). Outside of
-Stock &amp; Yogo, any major concerns from what you see in this
-regression?</p></li>
-<li><p>Ignoring the controls, produce a scatterplot graph with
-immigration on the y-axis and the instrument on the x-axis. Comment on
-what you see. Does this look like a strong relationship? Does the
-relationship look linear?</p></li>
-<li><p>Run two 2SLS regressions, and display their estimates in a shared
-table, all using heteroskedasticity-robust standard errors. First,
-estimate 2SLS “by hand” by estimating the first stage like in Step 2,
-getting the predicted values, and using that in the second stage
-(remember, the standard errors for this one will definitely be wrong).
-Second, estimate the same model (again using 2SLS) but using a command
-specially designed to estimate IV. Then, show both regression results on
-a shared table (optionally, you may make the table show only the
-coefficient on the immigration variable, if you’d like it to be a bit
-cleaner).</p></li>
+<li>Panel data is often described as “N by T”. That is, the number of
+different individuals N and the number of time periods T. Write code
+that outputs what N and T are in this data.</li>
 </ol>
 <p><em>Language-specific instructions</em>:</p>
 <ul>
-<li>Shared regression tables can be done using <code>msummary()</code>
-from <strong>modelsummary</strong> in R, or <code>esttab</code> from
-<strong>estout</strong> in Stata.</li>
-<li>In R and Python, to add the predicted values to the data, you’ll
-need to deal with the fact that some observations were dropped from the
-data to estimate the model, so there are fewer predicted values than
-rows in the data. This can be solved in R by using
-<code>predict(model, newdata = hr)</code> instead of just
-<code>predict(model)</code>, and in Python by
-<code>model.predict(hr)</code>.</li>
-<li>In Python, note that the <code>cov_type</code> to get
-heteroskedasticity-robust standard errors with
-<strong>linearmodels</strong> functions instead of
-<strong>statsmodels</strong> functions is <code>&#39;robust&#39;</code>, not
-<code>&#39;hc3&#39;</code>. Also, skip the shared table (since
-<code>Stargazer()</code> does not support <strong>linearmodels</strong>
-output) and just summarize both regressions.</li>
+<li>This will entail counting the number of unique values of your
+individual and time identifiers. In R try <code>unique()</code> to get
+the unique values and <code>length()</code> to count how many there are,
+or similarly <code>pd.unique()</code> and <code>len()</code> in Python.
+In Stata try <code>codebook</code> to get the number of unique
+values.</li>
 </ul>
+<pre class="r"><code># N:
+length(unique(mp$distid))
+# T:
+length(unique(mp$year))</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>codebook distid
+codebook year</code></pre>
+<p>Python:</p>
+<pre class="python"><code>len(pd.unique(mp[&#39;distid&#39;]))
+len(pd.unique(mp[&#39;year&#39;]))</code></pre>
+<p>It’s N=550 observations and T=7 time periods.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>A <em>balanced</em> panel is one in which each individual shows up
+in every single time period. You can check whether a data set is a
+balanced panel by seeing whether the number of unique time periods each
+individual ID shows up in is the same as the number of unique time
+periods, or whether the number of unique individual IDs in each time
+period is the same as the total number of unique individual IDs. Think
+to yourself a second about why these procedures would check that this is
+a balanced panel. Then, check whether this data set is a balanced
+panel.</li>
+</ol>
+<p>(hint: there are many ways to do this, but the easiest is to limit
+the data to just individual ID and year, drop any duplicates (keeping
+only <code>unique()</code> values in R, <code>drop duplicates</code> in
+Stata, or <code>.drop_duplicates()</code> in Python), and tabulating how
+many times each year appears (<code>table()</code> in R,
+<code>tabulate</code> in Stata, <code>.value_counts()</code> in
+Python))</p>
+<pre class="r"><code>mp %&gt;%
+  select(distid, year) %&gt;%
+  unique() %&gt;%
+  pull(year) %&gt;%
+  table()</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>preserve
+keep distid year
+duplicates drop
+tab year
+restore</code></pre>
+<p>Python:</p>
+<pre class="python"><code>mp.loc[:,[&#39;distid&#39;,&#39;year&#39;]].drop_duplicates().value_counts(&#39;year&#39;)</code></pre>
+<p>After dropping duplicates, each year shows up exactly 550 times, the
+same as the overall number of individual IDs. This is a balanced
+panel.</p>
+<ol start="4" style="list-style-type: decimal">
+<li>Run an OLS regression, with no fixed effects, of <code>math4</code>
+on <code>expp</code> and <code>lunch</code>. Store the results as
+<code>m1</code>.</li>
+</ol>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>Yes, store them in Stata too. Following your regression use
+<code>estimates store</code>.</li>
+</ul>
+<pre class="r"><code>m1 &lt;- lm(math4 ~ expp + lunch, data = mp)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>reg math4 expp lunch
+estimates store m1</code></pre>
+<p>Python:</p>
+<pre class="python"><code>import statsmodels.formula.api as smf
+
+m1 = smf.ols(&#39;math4~expp+lunch&#39;, data = mp).fit()</code></pre>
 <ol start="5" style="list-style-type: decimal">
-<li><p>Run a third 2SLS model, this time without robust SEs but with
-adding the square of the instrument as a second instrument. Show the F
-statistic testing whether the coefficients on the instrument are jointly
-0, and comment on what you see (the Stock and Yogo cutoff from Step 2 is
-now 19.93, note). Then, show the results of this third 2SLS model on the
-same table as the first two models from Step 4.</p></li>
-<li><p>Our model from Step 5 has two instruments, so we can run an
-overidentification test on it. Comment on whether an overidentification
-test makes sense in this context or not, <em>and why</em>. Then,
-regardless of whether it makes sense, run the test (the Sargan, if you
-have a choice) and interpret the result.</p></li>
-<li><p>Re-estimate the same model from Step 5, but this time use GMM to
-estimate the model. In R or Stata, show the results in a table shared
-with the model from Step 5.</p></li>
-<li><p>If you are using R or Stata, re-estimate the 2SLS model using
-Anderson-Rubin confidence intervals. Comment on how this changes the
-results relative to the last model you ran in Step 4.</p></li>
+<li>Modify the model in step 4 to include fixed effects for
+<code>distid</code> “by hand”. That is, subtract out the
+within-<code>distid</code> mean of <code>math4</code>,
+<code>expp</code>, and <code>lunch</code>, creating new variables
+<code>math4_demean</code>, <code>expp_demean</code>, and
+<code>lunch_demean</code>, and re-estimate the model using those
+variables, storing the result as <code>m2</code>.</li>
+</ol>
+<p>(tip: be careful that your code doesn’t overwrite the original
+variables, or at least if it does, reload the data afterwards)</p>
+<p>R:</p>
+<pre class="r"><code>mp &lt;- mp %&gt;%
+  group_by(distid) %&gt;%
+  mutate(math4_demean = math4 - mean(math4),
+         expp_demean = expp - mean(expp),
+         lunch_demean = lunch - mean(lunch))
+m2 &lt;- lm(math4_demean ~ expp_demean + lunch_demean, data = mp)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>* Could do this one at a time, or speed up slightly with a loop
+foreach var of varlist math4 expp lunch {
+    by distid, sort: egen temp = mean(`var&#39;)
+    g `var&#39;_demean = `var&#39; - temp
+    drop temp
+}
+reg math4_demean expp_demean lunch_demean
+estimates store m2</code></pre>
+<p>Python:</p>
+<pre class="python"><code>import numpy as np
+
+mp[[&#39;math4_demean&#39;,&#39;expp_demean&#39;,&#39;lunch_demean&#39;]] = (mp.groupby(&#39;distid&#39;)[[&#39;math4&#39;,&#39;expp&#39;,&#39;lunch&#39;]].transform(lambda x: x - np.mean(x)))
+
+m2 = smf.ols(&#39;math4_demean~expp_demean+lunch_demean&#39;, data = mp).fit()</code></pre>
+<ol start="6" style="list-style-type: decimal">
+<li>Next we’re going to estimate fixed effects by including
+<code>distid</code> as a set of dummies. This can be extremely slow, so
+for demonstration purposes use only the first 500 observations of your
+data (don’t get rid of the other observations, though, you’ll want them
+for the rest of this assignment). Run the model from step 4 but with
+dummies for different values of <code>distid</code>, saving the result
+as <code>m3</code>. Then, do a joint F test on the dummies (see Chapter
+13), and report if you can reject that the dummies are jointly zero at
+the 99% level.</li>
+</ol>
+<p>Tip: <code>distid</code> is stored as a numeric variable, but you
+want it to be treated as a categorical variable. If your regression
+result only has one coefficient for <code>distid</code> you’ve done it
+wrong.</p>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>For Python, visit <a href="https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLSResults.f_test.html">this
+page</a> of the <strong>statsmodels</strong> documentation. The first
+example shows how to do a joint F-test comparing a long list of
+parameters to 0. You’ll need to change the <code>1:</code> part, though.
+So pay attention to which parameter index numbers have the coefficients
+you want to test.</li>
+</ul>
+<p>R:</p>
+<pre class="r"><code>m3 &lt;- lm(math4 ~ expp + lunch + factor(distid), data = mp %&gt;% slice(1:500))
+
+library(car)
+linearHypothesis(m3,matchCoefs(m3,&#39;distid&#39;))</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>reg math4 expp lunch i.distid in 1/500
+estimates store m3
+testparm i.distid</code></pre>
+<p>Python:</p>
+<pre class="python"><code>m3 = smf.ols(&#39;math4~expp+lunch+C(distid)&#39;, data = mp[0:999]).fit()
+
+R = np.identity(len(m3.params))
+R = R[1:(len(m3.params)-2),:]
+m3.f_test(R)</code></pre>
+<p>The p-value on the F-test is far below .01, so we can reject that the
+fixed effects are jointly 0 at the 99% level.</p>
+<ol start="7" style="list-style-type: decimal">
+<li>Now we will use a specially-designed function to estimate a model
+with fixed effects. (Using the whole data set once again), use
+<code>feols()</code> from the <strong>fixest</strong> package in R,
+<code>reghdfe</code> from the <strong>reghdfe</strong> package in Stata,
+or <code>PanelOLS</code> from <strong>linearmodels</strong> in Python to
+estimate the model from step 4 but with fixed effects for
+<code>distid</code>. Save the result as <code>m4</code>. Include
+standard errors clustered at the <code>distid</code> level.</li>
+</ol>
+<p>R:</p>
+<pre class="r"><code>library(fixest)
+m4 &lt;- feols(math4 ~ expp + lunch | distid, data = mp)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>* ssc install reghdfe
+reghdfe math4 expp lunch, a(distid) vce(cluster distid)
+estimates store m4</code></pre>
+<p>Python:</p>
+<pre class="python"><code>import linearmodels as lm
+
+mp = mp.set_index([&#39;distid&#39;,&#39;year&#39;])
+
+m4 = lm.PanelOLS.from_formula(&#39;math4~expp+lunch + EntityEffects&#39;, data = mp).fit(cov_type = &#39;clustered&#39;, cluster_entity = True)</code></pre>
+<ol start="8" style="list-style-type: decimal">
+<li>Now add fixed effects for year to your model from step 7 to create a
+two-way fixed effects model. Keep the standard errors clustered at the
+<code>distid</code> level. Save the results as <code>m5</code>.</li>
+</ol>
+<p>R:</p>
+<pre class="r"><code>m5 &lt;- feols(math4 ~ expp + lunch | distid + year, data = mp)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>reghdfe math4 expp lunch, a(distid year) vce(cluster distid)
+estimates store m5</code></pre>
+<p>Python:</p>
+<pre class="python"><code>m5 = lm.PanelOLS.from_formula(&#39;math4~expp+lunch + EntityEffects + TimeEffects&#39;, data = mp).fit(cov_type = &#39;clustered&#39;, cluster_entity = True)</code></pre>
+<ol start="9" style="list-style-type: decimal">
+<li>Using <code>modelsummary()</code> from <strong>modelsummary</strong>
+in R, <code>esttab</code> from <strong>estout</strong> in Stata, or
+<code>Stargazer</code> from <strong>stargazer.stargazer</strong> in
+Python, make a regression table including <code>m1</code> through
+<code>m5</code> in the same table so you can compare them all. Read the
+documentation of your command to figure out how to include the
+<code>expp</code>, <code>lunch</code>, <code>expp_demean</code>, and
+<code>lunch_demean</code> predictors in the table without clogging the
+thing up with a bunch of dummy coefficients from <code>m3</code>.</li>
+</ol>
+<p>Write down two interesting things you notice from the table. Multiple
+possible answers here.</p>
+<p>R:</p>
+<pre class="r"><code>library(modelsummary)
+# the stars argument here is optional
+msummary(list(m1,m2,m3,m4,m5), coef_omit = &#39;distid&#39;, stars = c(&#39;*&#39;=.1,&#39;**&#39;=.05,&#39;***&#39;=.01))</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>*ssc install estout
+esttab m1 m2 m3 m4 m5, drop(*.distid)</code></pre>
+<p>Python:</p>
+<pre class="python"><code>from stargazer.stargazer import Stargazer
+regtable = Stargazer([m1,m2,m3,m4,m5])
+regtable.render_html()</code></pre>
+<p>Some interesting observations include that models 2-4 produce the
+exact same coefficients (except for the intercept), and the possibly
+surprising fact that the two-way fixed effects model finds no effect of
+<code>expp</code> or <code>lunch</code>.</p>
+<ol start="10" style="list-style-type: decimal">
+<li>Finally, we’ll close it out by using correlated random effects
+instead of fixed effects (see 16.3.3). You already have
+<code>expp_demean</code> and <code>lunch_demean</code> from earlier.
+Now, modify the code from that slightly to add on <code>expp_mean</code>
+and <code>lunch_mean</code> (the mean within <code>distid</code> instead
+of the value <em>minus</em> that mean). Then, regress <code>math4</code>
+on <code>expp_demean</code>, <code>lunch_demean</code>,
+<code>expp_mean</code>, and <code>lunch_mean</code>, with random effects
+for <code>distid</code> using <code>lmer()</code> from
+<strong>lme4</strong> in R, <code>xtreg, re</code> in Stata, or
+<code>RandomEffects</code> from <strong>linearmodels</strong> in Python.
+Show a summary of the regression results.</li>
 </ol>
 <p><em>Language-specific instructions</em>:</p>
 <ul>
-<li>In R, as it mentions in the chapter, you’ll first need to
-re-estimate your Step 4 model using the <code>ivreg</code> function from
-<strong>AER</strong>. Note that <code>ivreg</code> formula syntax is
-<code>y ~ d + x | z + x</code>, where <code>d</code> is treatment,
-<code>z</code> is the instrument, and <code>x</code> are controls.
-Controls must go on both sides of the <code>|</code>, unlike in
-<code>feols()</code>.</li>
+<li>In R, <code>lmer()</code> has a hard time with numeric variables as
+categorical indicators. Create a new, factor version of
+<code>distid</code> directly in the data before running the model, and
+use that instead.</li>
 </ul>
+<pre class="r"><code>library(lme4)
+
+mp &lt;- mp %&gt;%
+   mutate(distid_factor = factor(distid)) %&gt;%
+  group_by(distid) %&gt;%
+  mutate(expp_mean = mean(expp),
+         lunch_mean = mean(lunch))
+m6 &lt;- lmer(math4 ~ (1|distid_factor) + expp_demean + lunch_demean + expp_mean + lunch_mean, data = mp)
+summary(m6)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>xtset distid
+* Could do this one at a time, or speed up slightly with a loop
+foreach var of varlist expp lunch {
+    by distid, sort: egen `var&#39;_mean = mean(`var&#39;)
+}
+
+xtreg math4 expp_demean lunch_demean expp_mean lunch_mean, re</code></pre>
+<p>Python:</p>
+<pre class="python"><code>mp[[&#39;expp_mean&#39;,&#39;lunch_mean&#39;]] = (mp.groupby(&#39;distid&#39;)[[&#39;expp&#39;,&#39;lunch&#39;]].transform(lambda x: np.mean(x)))
+
+m6 = lm.RandomEffects.from_formula(&#39;math4~expp_demean+lunch_demean+expp_mean+lunch_mean&#39;, data=mp).fit()
+
+m6</code></pre>
 
 
 

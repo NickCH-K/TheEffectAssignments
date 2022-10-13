@@ -12,7 +12,7 @@
 <meta name="author" content="Nick Huntington-Klein" />
 
 
-<title>Chapter 19 Coding Homework</title>
+<title>Chapter 15 Coding Homework</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -362,183 +362,538 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Chapter 19 Coding Homework</h1>
+<h1 class="title toc-ignore">Chapter 15 Coding Homework</h1>
 <h4 class="author">Nick Huntington-Klein</h4>
 <h4 class="date">Updated 2022-10-13</h4>
 
 </div>
 
 
-<p>We will be looking at, and replicating, <a href="https://www.aeaweb.org/articles?id=10.1257/aer.104.1.84">this</a>
-paper which looks at the influence of the mass emigration of French
-Huguenots to Prussia in the 17th century. It specifically looks at the
-effect of skilled immigration to places with underused economic
-potential on their productivity. It instruments for immigration with
-population loss in a Prussian area during the Thirty Years’ War -
-immigrants were encouraged to move to places that had lost a lot of
-people.</p>
 <p>Follow the below instructions and turn in both your code and
 results:</p>
 <ol style="list-style-type: decimal">
-<li>Load the <code>iv_hornug_data.dta</code> data file (this is a Stata
-data file, details for loading below), and then limit the variables to
-<code>ln_output1802_all</code> (the dependent variable),
-<code>hugue_1700_pc</code> (the measure of immigration),
-<code>poploss_keyser</code> (the instrument), and the control variables
-<code>ln_workers1802_all</code>, <code>ln_looms1802_all</code>,
-<code>mi_ln_input1802_all</code>, <code>no_looms</code>,
-<code>ln_popcity1802</code>,
-<code>vieh1816_schaf_ganz_veredelt_pc</code>,
-<code>pop1816_prot_pc</code>, <code>no_hugue_possible</code>,
-<code>imputed_dummy</code>, <code>textil_1680_dummy</code>. In R or
-Python, store the data set as <code>hr</code>.</li>
+<li>Create a data set with 1000 observations and four variables. Note
+that for A and B the values specified are the random-number-generation
+defaults in all languages so you shouldn’t need to change anything. Also
+note that there are many different ways to make C and D, all are valid
+if they work:</li>
 </ol>
-<p>Variable descriptions are:</p>
-<table>
-<thead>
-<tr class="header">
-<th>Variable</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>ln_output1802_all</td>
-<td>(ln) Output</td>
-</tr>
-<tr class="even">
-<td>hugue_1700_pc</td>
-<td>% Huguenots 1700</td>
-</tr>
-<tr class="odd">
-<td>poploss_keyser</td>
-<td>Pop losses in 30 Years’ War, Keyser</td>
-</tr>
-<tr class="even">
-<td>ln_workers1802_all</td>
-<td>(ln) Workers</td>
-</tr>
-<tr class="odd">
-<td>ln_looms1802_all</td>
-<td>(ln) Looms</td>
-</tr>
-<tr class="even">
-<td>mi_ln_input1802_all</td>
-<td>(ln) Value of Materials (imputed)</td>
-</tr>
-<tr class="odd">
-<td>no_looms</td>
-<td>Not using looms (dummy)</td>
-</tr>
-<tr class="even">
-<td>ln_popcity1802</td>
-<td>(ln) Town Population 1802</td>
-</tr>
-<tr class="odd">
-<td>vieh1816_schaf_ganz_veredelt_pc</td>
-<td>Merino sheep p.c. 1816 (county)</td>
-</tr>
-<tr class="even">
-<td>pop1816_prot_pc</td>
-<td>% Protestant</td>
-</tr>
-<tr class="odd">
-<td>no_hugue_possible</td>
-<td>Not Prussia in 1700 (dummy)</td>
-</tr>
-<tr class="even">
-<td>imputed_dummy</td>
-<td>Dummy for imputed values</td>
-</tr>
-<tr class="odd">
-<td>textil_1680_dummy</td>
-<td>Relevant textile production before 1685 (dummy)</td>
-</tr>
-</tbody>
-</table>
+<ul>
+<li>A, which is normally distributed with mean 0 and standard deviation
+1</li>
+<li>B, which is uniformly distributed from 0 to 1</li>
+<li>C, which is equal to 1 (or if you prefer, True) with probability .4
+and 0 (or if you prefer, False) with probability .6</li>
+<li>D, which is equal to 2 with probability .5, 1 with probability .3,
+and 0 with probability .2.</li>
+</ul>
+<p><em>Tip</em>: try tabulating the proportion of each value you get in
+your data for variables C and D to check if you did it properly.
+“Checking afterwards if you did it properly” is a very basic but far too
+often overlooked statistical-coding skill.</p>
 <p><em>Language-specific instructions</em>:</p>
 <ul>
-<li>In R, the <code>read_stata()</code> function in the
-<strong>haven</strong> package can be used to read the Stata file.</li>
-<li>In Python, <code>pd.read_stata()</code> can be used.</li>
+<li>In Stata, you’ll want to <code>clear</code> your data before doing
+this or else you’ll get errors if you rerun your code.</li>
+<li>In R or Python, name the data set you create <code>d</code>. Also,
+only write the number 1000 (for 1000 observations) <em>once</em> in your
+code by assigning it to a variable outside your data set <code>N</code>,
+and referring to <code>N</code> instead of 1000 when generating each
+variable in your data set.</li>
 </ul>
+<p>R:</p>
+<pre class="r"><code>library(tidyverse)
+
+N &lt;- 1000
+
+d &lt;- tibble(A = rnorm(N),
+            B = runif(N),
+            C = sample(0:1, N, replace = TRUE, prob = c(.4, .6)),
+            D = sample(0:2, N, replace = TRUE, prob = c(.5, .3, .2)))
+
+# Check if it worked
+prop.table(table(d$C))
+prop.table(table(d$D))</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>clear
+
+set obs 1000
+
+g A = rnormal()
+g B = runiform()
+g C = runiform() &lt; .6
+g uniform_for_D = runiform()
+g D = 0*(uniform_for_D &lt; .5) + 1*(uniform_for_D &gt;= .5 &amp; uniform_for_D &lt; .8) + 2*(uniform_for_D &gt;= .8)
+drop uniform_for_D
+
+* Check if it worked
+tab C
+tab D</code></pre>
+<p>Python:</p>
+<pre class="python"><code>import pandas as pd
+import numpy as np
+
+N = 1000
+
+d = pd.DataFrame({
+  &#39;A&#39;: np.random.normal(size = N),
+  &#39;B&#39;: np.random.uniform(size = N),
+  &#39;C&#39;: np.random.uniform(size = N) &lt; .6,
+  &#39;uniform_for_D&#39;: np.random.uniform(size = N)
+})
+
+d[&#39;D&#39;] = 0*(d[&#39;uniform_for_D&#39;] &lt; .5) + 1*(d[&#39;uniform_for_D&#39;] &gt;= .5)*(d[&#39;uniform_for_D&#39;] &lt; .8) + 2*(d[&#39;uniform_for_D&#39;] &gt;= .8)
+d = d.drop(labels = &#39;uniform_for_D&#39;, axis = 1)
+
+# Check if we did it properly
+pd.value_counts(d[&#39;C&#39;], normalize = True)
+pd.value_counts(d[&#39;D&#39;], normalize = True)</code></pre>
 <ol start="2" style="list-style-type: decimal">
-<li><p>Run an OLS regression using your regular-ol’ OLS-running command
-of the “first stage” of this IV analysis, regressing the measure of
-immigration on the instrument and all controls. Also produce an F
-statistic testing whether the coefficient on the instrument is 0.
-Comment on what you see, keeping in mind that the Stock and Yogo cutoff
-for one treatment and one control to ensure that IV bias is less than
-10% of OLS bias is 16.38. (And while I’m having you do this exercise and
-it provides useful information, remember that <em>stopping</em> the
-analysis because of failing to meet this cutoff has all sorts of
-problems! Remember how this was discussed in the chapter). Outside of
-Stock &amp; Yogo, any major concerns from what you see in this
-regression?</p></li>
-<li><p>Ignoring the controls, produce a scatterplot graph with
-immigration on the y-axis and the instrument on the x-axis. Comment on
-what you see. Does this look like a strong relationship? Does the
-relationship look linear?</p></li>
-<li><p>Run two 2SLS regressions, and display their estimates in a shared
-table, all using heteroskedasticity-robust standard errors. First,
-estimate 2SLS “by hand” by estimating the first stage like in Step 2,
-getting the predicted values, and using that in the second stage
-(remember, the standard errors for this one will definitely be wrong).
-Second, estimate the same model (again using 2SLS) but using a command
-specially designed to estimate IV. Then, show both regression results on
-a shared table (optionally, you may make the table show only the
-coefficient on the immigration variable, if you’d like it to be a bit
-cleaner).</p></li>
+<li>Generate a data set with 1000 observations with the following
+variables:</li>
+</ol>
+<ul>
+<li>eps, which is normally distributed</li>
+<li>nu, which is normally distributed</li>
+<li>W, which is 0 (or False) with probability .5 and 1 (True) with
+probability .5</li>
+<li>D, our treatment variable, which is 1 if nu + (W - .5) is positive,
+and 0 if it’s negative</li>
+<li>Y, our outcome variable, which is X + W + eps.</li>
+</ul>
+<p>R:</p>
+<pre class="r"><code>N &lt;- 1000
+
+d &lt;- tibble(eps = rnorm(N),
+            nu = rnorm(N),
+            W = sample(0:1, replace = TRUE)) %&gt;% # equal probabilities are the default
+  mutate(D = nu + (W-.5)&gt;0) %&gt;%
+  mutate(Y = D + W + eps)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>clear
+
+set obs 1000
+
+g eps = rnormal()
+g nu = rnormal()
+g W = runiform() &gt; .5
+g D = nu + (W - .5) &gt; 0
+g Y = D + W + eps</code></pre>
+<p>Python:</p>
+<pre class="python"><code>N = 1000
+
+d = pd.DataFrame({
+  &#39;eps&#39;: np.random.normal(size = N),
+  &#39;nu&#39;: np.random.normal(size = N),
+  &#39;W&#39;: 1*(np.random.uniform(size = N) &gt; .5)
+})
+
+d[&#39;D&#39;] = 1*(d[&#39;nu&#39;] + (d[&#39;W&#39;] - .5) &gt; 0)
+d[&#39;Y&#39;] = d[&#39;D&#39;] + d[&#39;W&#39;] + d[&#39;eps&#39;]</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Write out the causal diagram paths implied by the data generating
+process you made in the last question (you only need to write out the
+direct arrows between two variables; there are five such arrows).</li>
+</ol>
+<ul>
+<li>D &lt;- nu</li>
+<li>D &lt;- W</li>
+<li>Y &lt;- X</li>
+<li>Y &lt;- W</li>
+<li>Y &lt;- eps</li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>Take the data-generating code from step 2. Change the way that Y is
+generated by adding coefficients to some of the variables. So Y is now
+b1X + b2W + eps. Then put it inside a function called
+<code>create_data</code> that lets you set N, b1, and b2 and leaves you
+with the created data set. In R and Python set the defaults to 1000, 1,
+and 0 respectively.</li>
 </ol>
 <p><em>Language-specific instructions</em>:</p>
 <ul>
-<li>Shared regression tables can be done using <code>msummary()</code>
-from <strong>modelsummary</strong> in R, or <code>esttab</code> from
-<strong>estout</strong> in Stata.</li>
-<li>In R and Python, to add the predicted values to the data, you’ll
-need to deal with the fact that some observations were dropped from the
-data to estimate the model, so there are fewer predicted values than
-rows in the data. This can be solved in R by using
-<code>predict(model, newdata = hr)</code> instead of just
-<code>predict(model)</code>, and in Python by
-<code>model.predict(hr)</code>.</li>
-<li>In Python, note that the <code>cov_type</code> to get
-heteroskedasticity-robust standard errors with
-<strong>linearmodels</strong> functions instead of
-<strong>statsmodels</strong> functions is <code>&#39;robust&#39;</code>, not
-<code>&#39;hc3&#39;</code>. Also, skip the shared table (since
-<code>Stargazer()</code> does not support <strong>linearmodels</strong>
-output) and just summarize both regressions.</li>
+<li>In Stata, you’ll need to refer to b1 and b2 using the local-variable
+indicators instead of just directly. See examples in the textbook
+chapter. And you can set defaults if you want too, but you’ll either
+need to use the <code>syntax</code> function for setting up your
+function, which we didn’t cover, or do something like check if the
+option is specified inside of your function, and fill it in if it
+isn’t.</li>
 </ul>
+<p>R:</p>
+<pre class="r"><code>create_data &lt;- function(N = 1000, b1 = 1, b2 = 0) {
+  d &lt;- tibble(eps = rnorm(N),
+              nu = rnorm(N),
+              W = sample(0:1, N, replace = TRUE)) %&gt;% # equal probabilities are the default
+    mutate(D = nu + (W-.5)&gt;0) %&gt;%
+    mutate(Y = b1*D + b2*W + eps)
+  return(d)
+}</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>cap prog drop create_data
+prog def create_data
+    local N = `1&#39;
+    local b1 = `2&#39;
+    local b2 = `3&#39;
+    
+    clear
+    set obs `N&#39;
+
+    g eps = rnormal()
+    g nu = rnormal()
+    g W = runiform() &gt; .5
+    g D = nu + (W - .5) &gt; 0
+    g Y = `b1&#39;*D + `b2&#39;*W + eps
+end</code></pre>
+<p>Python:</p>
+<pre class="python"><code>def create_data(N=1000, b1=1, b2=0):
+  d = pd.DataFrame({
+    &#39;eps&#39;: np.random.normal(size = N),
+    &#39;nu&#39;: np.random.normal(size = N),
+    &#39;W&#39;: 1*(np.random.uniform(size = N) &gt; .5)
+  })
+  
+  d[&#39;D&#39;] = 1*(d[&#39;nu&#39;] + (d[&#39;W&#39;] - .5) &gt; 0)
+  d[&#39;Y&#39;] = b1*d[&#39;D&#39;] + b2*d[&#39;W&#39;] + d[&#39;eps&#39;]
+  
+  return(d)</code></pre>
 <ol start="5" style="list-style-type: decimal">
-<li><p>Run a third 2SLS model, this time without robust SEs but with
-adding the square of the instrument as a second instrument. Show the F
-statistic testing whether the coefficients on the instrument are jointly
-0, and comment on what you see (the Stock and Yogo cutoff from Step 2 is
-now 19.93, note). Then, show the results of this third 2SLS model on the
-same table as the first two models from Step 4.</p></li>
-<li><p>Our model from Step 5 has two instruments, so we can run an
-overidentification test on it. Comment on whether an overidentification
-test makes sense in this context or not, <em>and why</em>. Then,
-regardless of whether it makes sense, run the test (the Sargan, if you
-have a choice) and interpret the result.</p></li>
-<li><p>Re-estimate the same model from Step 5, but this time use GMM to
-estimate the model. In R or Stata, show the results in a table shared
-with the model from Step 5.</p></li>
-<li><p>If you are using R or Stata, re-estimate the 2SLS model using
-Anderson-Rubin confidence intervals. Comment on how this changes the
-results relative to the last model you ran in Step 4.</p></li>
+<li>Create a new function called <code>est_function</code> that runs
+<code>create_data</code> to get some data, then runs a linear regression
+of Y on D, and returns the coefficient on D. <code>est_function()</code>
+should also take N, b1, and b2 as arguments, and pass them along to
+<code>create_data</code>.</li>
 </ol>
 <p><em>Language-specific instructions</em>:</p>
 <ul>
-<li>In R, as it mentions in the chapter, you’ll first need to
-re-estimate your Step 4 model using the <code>ivreg</code> function from
-<strong>AER</strong>. Note that <code>ivreg</code> formula syntax is
-<code>y ~ d + x | z + x</code>, where <code>d</code> is treatment,
-<code>z</code> is the instrument, and <code>x</code> are controls.
-Controls must go on both sides of the <code>|</code>, unlike in
-<code>feols()</code>.</li>
+<li>In Stata, just run the entire regression and end the function there
+(you don’t even need the <code>estimates store</code> step if the next
+thing you do after calling <code>est_function</code> is get the
+coefficient) rather than trying to return the coefficient. This will be
+easier.</li>
 </ul>
+<p>R:</p>
+<pre class="r"><code>est_function &lt;- function(N = 1000, b1 = 1, b2 = 0) {
+  d &lt;- create_data(N, b1, b2)
+  m &lt;- lm(Y~D, data = d)
+  return(coef(m)[2])
+}</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>cap prog drop est_function
+prog def est_function
+    local N = `1&#39;
+    local b1 = `2&#39;
+    local b2 = `3&#39;
+    
+    create_data `1&#39; `2&#39; `3&#39;
+    
+    reg Y D
+end</code></pre>
+<p>Python:</p>
+<pre class="python"><code>import statsmodels.formula.api as smf
+
+def est_function(N=1000, b1=1, b2=0):
+  d = create_data(N=N, b1=b1, b2=b2)
+  m = smf.ols(&#39;Y~D&#39;, data = d).fit()
+  return(m.params[&#39;D&#39;])</code></pre>
+<ol start="6" style="list-style-type: decimal">
+<li>Set your random seed to 5000. Then run <code>est_function</code>
+1000 times with <code>N=1000, b1=1, b2=0</code>, storing all the
+results. Then show the mean and standard deviation of the estimates
+across the 1000 iterations. Comment on whether this estimator seems to
+work well. (and save your mean and SD results - we’ll refer back to them
+later)</li>
+</ol>
+<p>R:</p>
+<pre class="r"><code>library(purrr)
+
+set.seed(5000)
+
+results &lt;- 1:1000 %&gt;%
+  map_dbl(function(x) est_function())
+
+mean(results)
+sd(results)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>set seed 5000
+clear
+set obs 1000
+g b1_est = .
+
+forvalues i = 1(1)1000 {
+    preserve
+    quietly est_function 1000 1 0
+    restore
+    replace b1_est = _b[D] in `i&#39;
+}
+
+summ b1_est</code></pre>
+<p>Python:</p>
+<pre class="python"><code>np.random.seed(5000)
+results = [est_function() for i in range(0,1000)]
+np.mean(results)
+np.std(results)</code></pre>
+<p>The average estimate is very nearly 1, which is the correct answer,
+so this estimator seems to work.</p>
+<ol start="7" style="list-style-type: decimal">
+<li>Now we’re going to rerun the simulation but with b2 set to 1 instead
+of 0. This will help us test how well our estimator will hold up when we
+break one of its assumptions. Comment on what assumption we are
+breaking. Rerun your code from step 7 but with b2 = 1. Comment on
+whether the estimator performs well with this broken assumption.</li>
+</ol>
+<p>R:</p>
+<pre class="r"><code>set.seed(5000)
+
+results &lt;- 1:1000 %&gt;%
+  map_dbl(function(x) est_function(b2=1))
+
+mean(results)
+sd(results)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>set seed 5000
+clear
+set obs 1000
+g b1_est = .
+
+forvalues i = 1(1)1000 {
+    preserve
+    quietly est_function 1000 1 1
+    restore
+    replace b1_est = _b[D] in `i&#39;
+}
+
+summ b1_est</code></pre>
+<p>Python:</p>
+<pre class="python"><code>np.random.seed(5000)
+results = [est_function(b2=1) for i in range(0,1000)]
+np.mean(results)
+np.std(results)</code></pre>
+<p>We are breaking the assumption that treatment D is unrelated to the
+error term (b2 = 1 without controlling for W puts W in the error term,
+and we already know that D and W are related)</p>
+<p>We now get an estimate near 1.4, far away (and statistically
+significantly different from) the truth, so this makes the estimator
+perform poorly.</p>
+<ol start="8" style="list-style-type: decimal">
+<li>Create new estimation functions <code>est_control()</code> and
+<code>est_interact()</code>. Each of them modifies the
+<code>est_function()</code> function to control for W.
+<code>est_control</code> simply adds W as a control, so you regress Y on
+D and W and return the coefficient on D. <code>est_interact</code>
+controls for W by <em>fully interacting</em> it with D. In other words,
+you’ll regress Y on D, W, and D times W. Then, estimate the <em>marginal
+effect at the mean</em> (remember Chapter 13) as (coefficient on D) +
+(average of W)x(coefficient on the interaction), and return that
+marginal effect at the mean. Set your seed to 5000 and run 1000
+iterations of <code>est_control()</code> and 1000 of
+<code>est_interact()</code> (both with b2 = 1). Comment on whether a
+fully-interacted model still works to get the right effect, and if both
+models work well, whether one has better precision than the other.</li>
+</ol>
+<p>R:</p>
+<pre class="r"><code>est_control&lt;- function(N = 1000, b1 = 1, b2 = 1) {
+  d &lt;- create_data(N, b1, b2)
+  m &lt;- lm(Y~D+W, data = d)
+  return(coef(m)[2])
+}
+est_interact&lt;- function(N = 1000, b1 = 1, b2 = 1) {
+  d &lt;- create_data(N, b1, b2)
+  m &lt;- lm(Y~D*W, data = d)
+  return(coef(m)[2] + mean(d$W)*coef(m)[4])
+}
+
+set.seed(5000)
+results_control &lt;- 1:1000 %&gt;%
+  map_dbl(function(x) est_control())
+
+mean(results_control)
+sd(results_control)
+
+results_interact &lt;- 1:1000 %&gt;%
+  map_dbl(function(x) est_interact())
+
+mean(results_interact)
+sd(results_interact)</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>
+set seed 5000
+clear
+set obs 1000
+g b1_control = .
+g b1_interact = .
+
+forvalues i = 1(1)1000 {
+    preserve
+    quietly est_control 1000 1 1
+    restore
+    replace b1_control = _b[D] in `i&#39;
+    
+    preserve
+    quietly est_interact 1000 1 1
+    qui summ W
+    restore
+    replace b1_interact = _b[1.D] + r(mean)*_b[1.D#1.W] in `i&#39;
+}
+
+summ b1_*</code></pre>
+<p>Python:</p>
+<pre class="python"><code>def est_control(N=1000, b1=1, b2=1):
+  d = create_data(N=N, b1=b1, b2=b2)
+  m = smf.ols(&#39;Y~D+W&#39;, data = d).fit()
+  return(m.params[&#39;D&#39;])
+
+def est_interact(N=1000, b1=1, b2=1):
+  d = create_data(N=N, b1=b1, b2=b2)
+  m = smf.ols(&#39;Y~D*W&#39;, data = d).fit()
+  return(m.params[&#39;D&#39;] + m.params[&#39;D:W&#39;]*np.mean(d[&#39;W&#39;]))
+
+np.random.seed(5000)
+results_control = [est_control() for i in range(0,1000)]
+np.mean(results_control)
+np.std(results_control)
+
+results_interact = [est_interact() for i in range(0,1000)]
+np.mean(results_interact)
+np.std(results_interact)</code></pre>
+<p>We do get an accurate average of about 1 for both methods. There are
+some slight differences in standard deviation but nothing major (and if
+you try it with a few different seeds you might get different
+results).</p>
+<ol start="9" style="list-style-type: decimal">
+<li>Modify <code>est_control</code> to return 1 if the coefficient on D
+is statistically significant at the 95% level, and 0 otherwise. Then,
+try running it with different sample sizes (500 iterations per sample
+size you try) to find the minimum sample size necessary to get 90% power
+if b1 = .5 and b2 = .5. Report what minimum sample size is. You don’t
+have to get it exactly - finding the smallest multiple of 100 that gives
+90% power or better is close enough.</li>
+</ol>
+<p>Tip: Not sure what range of sample sizes to try? Search around with a
+smaller number of iterations (maybe 100 instead of 500?) until you get
+numbers that look sort of like 90%, then increase the number of
+iterations to see if it holds up.</p>
+<p><em>Language-specific instructions</em>:</p>
+<ul>
+<li>In Stata, this will mostly require modifying your iteration loop (or
+iteration function, if you wrote one), rather than modifying
+<code>est_control</code>.</li>
+</ul>
+<p>R:</p>
+<pre class="r"><code>library(broom)
+
+est_control&lt;- function(N = 1000, b1 = 1, b2 = 1) {
+  d &lt;- create_data(N, b1, b2)
+  m &lt;- lm(Y~D+W, data = d)
+  return(tidy(m)$p.value[2] &lt;= .05)
+}
+
+iterate &lt;- function(iter = 500, N = 1000, b1 = .5, b2 = .5) {
+  1:iter %&gt;%
+    map_dbl(function(x) est_control(N, b1, b2)) %&gt;%
+    mean()
+}
+
+set.seed(5000)
+c(100, 200, 300) %&gt;%
+  map_df(function(x) list(N = x, proportion_significant = iterate(N = x)))</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>set seed 5000
+foreach N in 100 200 300 {
+    clear
+    set obs 500
+    g b1_sig = .
+
+    forvalues i = 1(1)500 {
+        preserve
+        quietly est_control `N&#39; .5 .5
+        restore
+        matrix R = r(table)
+        matrix p = R[&quot;pvalue&quot;,&quot;D&quot;]
+        quietly replace b1_sig = p[1,1] &lt;= .05 in `i&#39;
+    }
+    summ b1_sig
+}</code></pre>
+<p>Python:</p>
+<pre class="python"><code>def est_control(N=1000, b1=1, b2=1):
+  d = create_data(N=N, b1=b1, b2=b2)
+  m = smf.ols(&#39;Y~D+W&#39;, data = d).fit()
+  return(m.pvalues[&#39;D&#39;] &lt;= .05)
+
+def iterate(iter = 500, N=500, b1 = .5, b2 = .5):
+  results = [est_control(N=N, b1=b1, b2=b2) for i in range(0,iter)]
+  return(np.mean(results))
+
+np.random.seed(5000)
+mss = [[N, iterate(N=N)] for N in [100, 200, 300]]
+# Look for the first N with power above 90%
+pd.DataFrame(mss, columns = [&#39;N&#39;,&#39;Power&#39;])</code></pre>
+<p>Looks like 200 observations won’t quite make it to 90% power (just
+barely missing), but 300 will! Depending on language you might get that
+200 was over the line and made it.</p>
+<ol start="10" style="list-style-type: decimal">
+<li>Now, keep the sample size at 500, and find the minimum detectable
+effect (b1) to get 90% power when b2 = .5.</li>
+</ol>
+<p>R:</p>
+<pre class="r"><code>set.seed(5000)
+c(.1, .2, .3, .4, .5) %&gt;%
+  map_df(function(x) list(N = x, proportion_significant = iterate(b1 = x)))</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>set seed 5000
+foreach b1 in .1 .2 .3 .4 .5 {
+    clear
+    set obs 500
+    g b1_sig = .
+
+    forvalues i = 1(1)500 {
+        preserve
+        quietly est_control 500 `b1&#39; .5
+        restore
+        matrix R = r(table)
+        matrix p = R[&quot;pvalue&quot;,&quot;D&quot;]
+        quietly replace b1_sig = p[1,1] &lt;= .05 in `i&#39;
+    }
+    summ b1_sig
+}</code></pre>
+<p>Python:</p>
+<pre class="python"><code>np.random.seed(5000)
+mde = [[b1, iterate(b1=b1)] for b1 in [.1, .2, .3, .4, .5]]
+# Look for the first N with power above 90%
+pd.DataFrame(mde, columns = [&#39;b1&#39;,&#39;Power&#39;])</code></pre>
+<p>Looks like an effect of about .3 gets us 90% power, depending on
+language we might find we need a bit above that.</p>
+<ol start="11" style="list-style-type: decimal">
+<li>Double b2 to be 1 instead of .5 and find the minimum detectable
+effect again. Does this change the minimum detectable effect?</li>
+</ol>
+<p>R:</p>
+<pre class="r"><code>set.seed(5000)
+c(.1, .2, .3, .4, .5) %&gt;%
+  map_df(function(x) list(N = x, proportion_significant = iterate(b1 = x, b2 = 1)))</code></pre>
+<p>Stata:</p>
+<pre class="stata"><code>set seed 5000
+foreach b1 in .1 .2 .3 .4 .5 {
+    clear
+    set obs 500
+    g b1_sig = .
+
+    forvalues i = 1(1)500 {
+        preserve
+        quietly est_control 500 `b1&#39; 1
+        restore
+        matrix R = r(table)
+        matrix p = R[&quot;pvalue&quot;,&quot;D&quot;]
+        quietly replace b1_sig = p[1,1] &lt;= .05 in `i&#39;
+    }
+    summ b1_sig
+}</code></pre>
+<p>Python:</p>
+<pre class="python"><code>np.random.seed(5000)
+mde = [[b1, iterate(b1=b1, b2 = 1)] for b1 in [.1, .2, .3, .4, .5]]
+# Look for the first N with power above 90%
+pd.DataFrame(mde, columns = [&#39;b1&#39;,&#39;Power&#39;])</code></pre>
+<p>The MDE appears to be completely unchanged!</p>
 
 
 

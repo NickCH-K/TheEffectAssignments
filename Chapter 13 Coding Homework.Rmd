@@ -52,12 +52,9 @@ Follow the below instructions and turn in both your code and results:
 *Language-specific instructions*: 
 
 - In both R and Python, save the model as `m7`, and `m7b` if you rerun with robust standard errors. 
-
-In R, use `fiter(!is.na(dengue$humid))` on the data before running the model so the residuals line up properly. Use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option. Also, if you're clever about `msummary()` usage, you can skip creating `m7b`. You can access residuals using `resid(m7)`.
-
-In Stata, you can access residuals using `predict resid, r` after running the model.
-
-In Python, use `dengue.loc[~pd.isna(dengue['humid'])]` on the data before running the model so the residuals line up properly. You can access residuals using `m7.resid`.
+- In R, use `fiter(!is.na(dengue$humid))` on the data before running the model so the residuals line up properly. Use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option. Also, if you're clever about `msummary()` usage, you can skip creating `m7b`. You can access residuals using `resid(m7)`.
+- In Stata, you can access residuals using `predict resid, r` after running the model.
+- In Python, use `dengue.loc[~pd.isna(dengue['humid'])]` on the data before running the model so the residuals line up properly. You can access residuals using `m7.resid`.
 
 
 8. In the graph in the last problem you may have noticed that for certain ranges of temperate, the errors were clearly nonzero on average. This can indicate a functional form problem. Run the model from question 7 again (with heteroskedasticity-robust standard errors), but this time use the logarithm of humidity in place of humidity. Add a sentence interpreting the coefficient on temperature. 
@@ -65,7 +62,6 @@ In Python, use `dengue.loc[~pd.isna(dengue['humid'])]` on the data before runnin
 *Language-specific instructions*: 
 
 - In Python and R, store the model as `m8`. In R, use the `msummary()` function from the **modelsummary** package to display the results with the `stars = TRUE` option. 
-
-In Stata, you'll need to create logged humidity in the data before running the regression. In R and Python you can do it inside of the regression formula, using `np.log()` from **numpy** in Python.
+- In Stata, you'll need to create logged humidity in the data before running the regression. In R and Python you can do it inside of the regression formula, using `np.log()` from **numpy** in Python.
 
 9. Bonus challenge: figure out how I decided on a form where you log humidity and keep temperature linear.
