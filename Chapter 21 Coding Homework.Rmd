@@ -1,0 +1,82 @@
+---
+title: "Chapter 21 Coding Homework"
+author: "Nick Huntington-Klein"
+date: "Updated `r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+library(Statamarkdown)
+```
+
+We will be replicating part of the paper [The Impact of Youth Medicaid Eligibility on Adult Incarceration](https://www.aeaweb.org/articles?id=10.1257/app.20200785) by Samuel Arenberg, Seth Neller, Sam Stripling (loosely; this won't match a specific analysis they did). This paper uses regression discontinuity, but will also serve for our purposes in looking at partial identification.
+
+In this study, Arenberg, Neller, and Stripling look at a 1990 change in policy that expanded Medicaid access to individuals born after September 30, 1983. Medicaid is a welfare program that provides medical care to low-income families. The paper uses regression discontinuity (with birthdate as the running variable) to estimate the effect of Medicaid on incarceration rates. The authors find that the policy change led to a 5% increase in incarceration rates for those who were eligible for Medicaid.
+
+Follow the below instructions and turn in both your code and results:
+
+1.  Load the `fl_longdata.dta` data file. In R, call it `fl`. Make a table of summary statistics so you can get a sense of the variables. Variable descriptions are as follows:
+
+| Relevant Variable | Description |
+|-------------------------------|-----------------------------------------|
+| race | The individual's race. This data set has been limited to Black people, so race is always 1. |
+| birth_year | The year of birth |
+| rel_date | Days relative to the eligibility cutoff Sep 30, 1983 |
+| offenses, sentence_yrs, recid_offense, iy_28, offense_type\_ | Measures of criminal activity, including number of offenses, incarcerations, sentence lengths, recidivism, and type of offense. iy_28 is number of years of incarceration as of age 28. |
+| medi | Indicator of whether the policy change led this person to be eligible for Medicaid. |
+
+*Language-specific instructions*:
+
+-   In R, the `read_stata()` function in the **haven** package can be used to read the Stata file. There are many options for making your summary statistics table, but one is just `summary()`.
+-   In Stata, you can make summary statistics with `summarize`.
+-   In Python, you can read the file with `pd.read_stata()` and use `.describe()` for your summaries.
+
+2.  The data currently has multiple observations per inmate. Let's flatten it. First, drop anyone with a missing `iy_28` value, and limit the data to high-poverty ZIP codes (`pov_med_1990 == 1)`. Then, collapse the data to the `dc_num` level, summing up the number of `offenses` and the total `sentence_yrs`, and taking the maximum values of whether they engaged in recidivism `recid_offense`, the number of years of incarceration they'd experienced by age 28 `iy_28`, `birth_year`, whether or not they are likely to be Hispanic `hispanic_likely`, all the `offense_type_` variables, the county of their first offense `offense_county_fips`, the days relative to the cutoff `rel_date`, and whether they were exposed to the policy change `medi`. In R, save over the original version of `fl`, we won't need it.
+
+*Language-specific instructions*:
+
+-   In R, you can use `group_by(dc_num)` to do your calculations by group, and then `summarize()` to do all the calculations, using `max()` Be sure to specify the names of the variables as you do this (`birth_year = max(birth_year)`) so you can easily refer to them later. There are some missing values for `recid_offense`, so add `na.rm = TRUE` for those.
+-   In Stata, use `collapse` (or `gcollapse` for extra speed) with `(sum)` and `(max)` settings, along with a `, by(dc_num)` at the end.
+-   In Python, you can use `.groupby(dc_num)` to do calculations by group, and then `.agg()` for your calculations. Be sure to specify the names of the variables as you do this (`birth_year=('birth_year', 'max')`) so you can easily refer to them later.
+
+2.  Let's run the basic regression discontinuity. Regress `recid_offense` on `medi` (our main treatment variable of interest) as well as `rel_date`, the square of `rel_date`, the interaction between `medi` and `rel_date`, and the interaction between `medi` and the square of `rel_date`. Look at the output of the regression.
+
+*Language-specific instructions*:
+
+-   In R, remember that you can add a square term using `I(X^2)` in your model, and can interact things with `*` which also includes the non-interacted versions. Save the model as `m`. Use `summary()` to look at the resulting regression.
+-   In Stata, you can use `##` to interact two variables as well as include their non-interacted versions.
+-   In Python, you can add a square term for your `smf.ols()` formula using `np.pow(X, 2)`. However, this doesn't work with integers, and `rel_date` is an integer. So you'll need `np.pow(np.float64(X, 2))` . On top of that, you can interact things with `*` which also includes the non-interacted versions. Save the model as `m`. Use `.summary()` to look at the resulting regression
+
+2.  Now let's add our controls and see how that changes the results. Add control variables for `iy_28`, `birth_year`, `hispanic_likely`, and all the `offense_type_` variables. Look at the output of that, too, and then say what the estimated effect is (it won't be significant, that's OK; the original paper does a slightly different analysis that's more precise that we're not doing).
+
+*Language-specific instructions*:
+
+-   In R, if you add a `.` to a regression, that will add controls for all the variables in the data set that haven't already been mentioned, so it's a good way to save typing! Store the model as `m2`. But be sure to drop `dc_num` and `offenses` first if you do this - we don't want those in there!
+-   In Python, you can build your formula as a string by using `'+'.join()` on all the variables you want to include as controls. Be sure not to include recid_offense, `dc_num`, `offenses`, `medi`, and `rel_date`. Save the model as `m2`.
+
+What are the estimated effect sizes?
+
+ANSWER HERE:
+
+2.  Our main partial-identification approach will ask the question "if the remaining omitted variables contribute a similar amount of bias to the controls we already have, how will that change the estimate?" Based on the two estimates we've already seen, with controls and without, do you anticipate that our result will be found to be robust or not? Why or why not?
+
+ANSWER HERE:
+
+2.  Using the **sensemakr** package, create a set of bounds, using the full set of covariates as your set of benchmark covariates. Keep in mind that `medi` (by itself, not interacted) is our treatment variable, and everything else besides the intercept is a control. Set a `kd` value of .05 (omitted factors 5% of the strength of all included covariates). Then, dreate a contour plot using the **sensemakr** package and add our adjusted estimates to the plot. You will need an x-axis range up to .9.
+
+*Language-specific instructions*:
+
+-   In Stata, you will need to create all the interaction and polynomial terms by hand and then include them.
+
+2.  Answer these questions about the plot:\
+    a.  Can we conclude from this plot that our finding that the effect is negative (if insignificant) is robust to having another set of omitted confounders 10% as strong as the ones already in the model? \
+        ANSWER HERE: \
+    b.  Based on where the "All Covariates" dot is on the graph, are the covariates we currently have more strongly related to the treatment or to the outcome? \
+        ANSWER HERE: \
+    c.  Tricky question: we previously found that adding the controls barely changed the estimated effect at all. But here we find an estimate pretty far from the original estimate. How is this possible? \
+        ANSWER HERE:
+
+<!-- -->
+
+3.  Add an extreme-case analysis plot.
